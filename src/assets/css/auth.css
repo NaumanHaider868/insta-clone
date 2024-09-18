@@ -1,0 +1,17 @@
+.login-side-img{
+    background: url('/src/assets/images/auth-img/home-phones-2x.png');
+}
+
+.screenshotx2{
+    left: 150px;
+    top: 52px;
+}
+
+.insta-logo{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background: url('/src/assets/images/insta-logo.png');
+}
