@@ -1,81 +1,190 @@
-import React from "react";
+import React, { useState } from "react";
+import user1 from "../../../assets/images/users-imgs/user18.jpeg";
+import user2 from "../../../assets/images/users-imgs/user12.jpeg";
+import user3 from "../../../assets/images/users-imgs/user17.jpeg";
+import user4 from "../../../assets/images/users-imgs/user13.jpeg";
+import InboxSide from "./InboxSide";
+import UserChat from "./UserChat";
 
-const Messages = () => {
+const MessagePage = () => {
+  const [users] = useState([
+    {
+      id: 1,
+      name: "Eman",
+      image: user4,
+      lastMessage: "2 new messages",
+      status: "new",
+      chats: [
+        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
+        {
+          sender: "Eman",
+          text: "I'm good! What about you?",
+          timestamp: "10:02 AM",
+        },
+        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
+      ],
+    },
+    {
+      id: 1,
+      name: "Eman",
+      image: user4,
+      lastMessage: "2 new messages",
+      status: "new",
+      chats: [
+        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
+        {
+          sender: "Eman",
+          text: "I'm good! What about you?",
+          timestamp: "10:02 AM",
+        },
+        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
+      ],
+    },
+    {
+      id: 1,
+      name: "Eman",
+      image: user4,
+      lastMessage: "2 new messages",
+      status: "new",
+      chats: [
+        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
+        {
+          sender: "Eman",
+          text: "I'm good! What about you?",
+          timestamp: "10:02 AM",
+        },
+        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
+      ],
+    },
+    {
+      id: 1,
+      name: "Eman",
+      image: user4,
+      lastMessage: "2 new messages",
+      status: "new",
+      chats: [
+        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
+        {
+          sender: "Eman",
+          text: "I'm good! What about you?",
+          timestamp: "10:02 AM",
+        },
+        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
+      ],
+    },
+    {
+      id: 1,
+      name: "Eman",
+      image: user4,
+      lastMessage: "2 new messages",
+      status: "new",
+      chats: [
+        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
+        {
+          sender: "Eman",
+          text: "I'm good! What about you?",
+          timestamp: "10:02 AM",
+        },
+        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
+      ],
+    },
+    {
+      id: 1,
+      name: "Eman",
+      image: user4,
+      lastMessage: "2 new messages",
+      status: "new",
+      chats: [
+        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
+        {
+          sender: "Eman",
+          text: "I'm good! What about you?",
+          timestamp: "10:02 AM",
+        },
+        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
+      ],
+    },
+    {
+      id: 2,
+      name: "Zain",
+      image: user2,
+      lastMessage: "Sent 1m ago",
+      status: "sent",
+      chats: [
+        {
+          sender: "me",
+          text: "Hey Zain, did you finish the project?",
+          timestamp: "9:00 AM",
+        },
+        {
+          sender: "Zain",
+          text: "Almost done, just need some final touches.",
+          timestamp: "9:05 AM",
+        },
+      ],
+    },
+    {
+      id: 3,
+      name: "Noman Rashid",
+      image: user3,
+      lastMessage: "Sent 1m ago",
+      status: "online",
+      chats: [
+        {
+          sender: "me",
+          text: "Noman, are you free for a quick call?",
+          timestamp: "11:30 AM",
+        },
+        {
+          sender: "Noman",
+          text: "Sure, let's do it in 10 minutes.",
+          timestamp: "11:35 AM",
+        },
+      ],
+    },
+    {
+      id: 4,
+      name: "Ali Haider",
+      image: user1,
+      lastMessage: "Seen",
+      status: "seen",
+      chats: [
+        {
+          sender: "me",
+          text: "Hey Ali, long time no see!",
+          timestamp: "8:45 AM",
+        },
+        {
+          sender: "Ali",
+          text: "Yeah, it's been a while. How's everything?",
+          timestamp: "8:50 AM",
+        },
+        { sender: "me", text: "All good here!", timestamp: "8:55 AM" },
+      ],
+    },
+  ]);
+
+  const [selectedUser, setSelectedUser] = useState();
+
+  const userInfo = (user) => {
+    // console.log(user);
+    setSelectedUser(user);
+  };
   return (
-    <div className="flex h-screen">
-      <div className="w-1/4 bg-black text-white p-4">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-gray-500">
-            {/* Profile Picture */}
+    <div className="inbox h-full">
+      <div className="flex items-center pt-4 pb-8 pl-32 h-full">
+        <div className="bg-[#EFEFEF] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10">
+          <InboxSide users={users} userInfo={userInfo} />
+          <div className="flex-1 bg-[#EFEFEF] p-4 flex w-full">
+            <UserChat
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+            />
           </div>
-          <div>
-            <p className="font-bold text-lg">naumanh_43</p>
-            <p className="text-sm text-gray-400">Your note</p>
-          </div>
-          <button className="ml-auto">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Messages List */}
-        <div className="flex flex-col space-y-3">
-          {[
-            { name: "Mian Noman", time: "5h", message: "sent an attachment" },
-            { name: "Itx syco", time: "11h", message: "sent an attachment" },
-            {
-              name: "The Abdullah Mirza",
-              time: "19h",
-              message: "You sent an attachment",
-            },
-            {
-              name: "Muhammad Ali",
-              time: "23h",
-              message: "sent an attachment",
-            },
-          ].map((msg, index) => (
-            <div
-              key={index}
-              className="flex items-center space-x-3 cursor-pointer hover:bg-gray-700 p-2 rounded"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-500">
-                {/* Profile Picture */}
-              </div>
-              <div>
-                <p className="font-bold">{msg.name}</p>
-                <p className="text-sm text-gray-400">
-                  {msg.message} • {msg.time}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-grow bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-2xl mb-4">Your messages</p>
-          <p className="text-gray-400 mb-6">Send a message to start a chat.</p>
-          <button className="bg-blue-500 px-6 py-2 rounded-full text-white">
-            Send message
-          </button>
         </div>
       </div>
     </div>
   );
 };
 
-export default Messages;
+export default MessagePage;

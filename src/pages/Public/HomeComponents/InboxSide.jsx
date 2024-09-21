@@ -1,0 +1,74 @@
+import React from "react";
+
+export default function InboxSide({ users, userInfo }) {
+  return (
+    <div className="w-[310px] p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold">Messages</h2>
+        {/* <div className="flex items-center space-x-2">
+          <button className="p-2 rounded-full">
+            <i className="fas fa-lock"></i>
+          </button>
+          <button className="p-2 rounded-full">
+            <i className="fas fa-edit"></i>
+          </button>
+        </div> */}
+      </div>
+
+      <div className="relative mb-4">
+        <input
+          type="text"
+          placeholder="Search"
+          className="w-full py-2 pl-10 pr-4 rounded-[40px] bg-white outline-none"
+        />
+        <i className="msg-search-icon absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400"></i>
+      </div>
+      <div className="h-[393px] overflow-auto overflow-x-hidden">
+        <div className="bg-white rounded-[20px]">
+          {users.map((user) => (
+            <div key={user.id} className="flex p-4 rounded-lg">
+              <div className="w-[57px] h-[46px] rounded-full bg-story relative">
+                <img
+                  className="w-full h-full rounded-full cursor-pointer p-[2px]"
+                  src={user.image}
+                  onClick={() => userInfo(user)}
+                  alt="Profile"
+                />
+                {user.status === "online" && (
+                  <span className="absolute w-[12px] h-[12px] rounded-full bg-[#14D41C] bottom-[0px] right-[3px]"></span>
+                )}
+              </div>
+              <div className="flex w-full flex-col relative">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center">
+                    <div className="ml-2">
+                      <h4
+                        className="font-semibold cursor-pointer"
+                        onClick={() => userInfo(user)}
+                      >
+                        {user.name}
+                      </h4>
+                      <p
+                        className={`text-[12px] ${
+                          user.status === "new"
+                            ? "text-[#0095F6] font-bold"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {user.lastMessage}
+                      </p>
+                    </div>
+                  </div>
+                  <i className="camera-icon"></i>
+                </div>
+                {user.id !== 4 && (
+                  <span className="w-[206px] absolute top-[54px] h-[0.5px] bg-[#9A9A9A]"></span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

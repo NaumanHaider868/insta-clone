@@ -265,3 +265,31 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
   width: 20px;
   height: 20px;
 }
+
+// inbox style
+
+.inbox {
+  .msg-search-icon {
+    background: url('../images/action-icons/search.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  .camera-icon {
+    background: url('../images/camera.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+}
+
+.bg-story {
+  background: linear-gradient(45deg, #ff00ff, #ff8c00);
+}
