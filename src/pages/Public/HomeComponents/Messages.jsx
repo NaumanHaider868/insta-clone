@@ -25,86 +25,6 @@ const MessagePage = () => {
       ],
     },
     {
-      id: 1,
-      name: "Eman",
-      image: user4,
-      lastMessage: "2 new messages",
-      status: "new",
-      chats: [
-        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
-        {
-          sender: "Eman",
-          text: "I'm good! What about you?",
-          timestamp: "10:02 AM",
-        },
-        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
-      ],
-    },
-    {
-      id: 1,
-      name: "Eman",
-      image: user4,
-      lastMessage: "2 new messages",
-      status: "new",
-      chats: [
-        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
-        {
-          sender: "Eman",
-          text: "I'm good! What about you?",
-          timestamp: "10:02 AM",
-        },
-        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
-      ],
-    },
-    {
-      id: 1,
-      name: "Eman",
-      image: user4,
-      lastMessage: "2 new messages",
-      status: "new",
-      chats: [
-        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
-        {
-          sender: "Eman",
-          text: "I'm good! What about you?",
-          timestamp: "10:02 AM",
-        },
-        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
-      ],
-    },
-    {
-      id: 1,
-      name: "Eman",
-      image: user4,
-      lastMessage: "2 new messages",
-      status: "new",
-      chats: [
-        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
-        {
-          sender: "Eman",
-          text: "I'm good! What about you?",
-          timestamp: "10:02 AM",
-        },
-        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
-      ],
-    },
-    {
-      id: 1,
-      name: "Eman",
-      image: user4,
-      lastMessage: "2 new messages",
-      status: "new",
-      chats: [
-        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
-        {
-          sender: "Eman",
-          text: "I'm good! What about you?",
-          timestamp: "10:02 AM",
-        },
-        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
-      ],
-    },
-    {
       id: 2,
       name: "Zain",
       image: user2,
@@ -174,7 +94,12 @@ const MessagePage = () => {
     <div className="inbox h-full">
       <div className="flex items-center pt-4 pb-8 pl-32 h-full">
         <div className="bg-[#EFEFEF] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10">
-          <InboxSide users={users} userInfo={userInfo} />
+          <InboxSide
+            users={users}
+            userInfo={userInfo}
+            selectedUser={selectedUser}
+            setSelectedUser={setSelectedUser}
+          />
           <div className="flex-1 bg-[#EFEFEF] p-4 flex w-full">
             <UserChat
               selectedUser={selectedUser}

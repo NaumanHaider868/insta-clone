@@ -1,65 +1,63 @@
-import React from "react";
-import user1 from "../../../assets/images/users-imgs/user17.jpeg";
-const ChatPage = () => {
-  const messages = [
-    {
-      id: 1,
-      sender: "Ali",
-      text: "Kal ka meeting discussion clear hai ya phr kuch confusing lag raha?",
-      time: "20/09/2024, 09:30",
-      fromMe: false,
-    },
-    {
-      id: 2,
-      sender: "Nauman",
-      text: "Haan thoda API integration ka part unclear tha, wo server se response delay issue kaise fix kareinge?",
-      time: "20/09/2024, 09:32",
-      fromMe: true,
-    },
-    {
-      id: 3,
-      sender: "Ali",
-      text: "Acha, wo toh backend ka thoda masla lag raha tha. Backend team ko batana hoga.",
-      time: "20/09/2024, 09:35",
-      fromMe: false,
-    },
-    {
-      id: 4,
-      sender: "Nauman",
-      text: "Chalo theek hai, main Ahmed ko ping karta hoon. Tum ne us project ki UI finish kar di?",
-      time: "20/09/2024, 09:40",
-      fromMe: true,
-    },
-    {
-      id: 5,
-      sender: "Ali",
-      text: "Haan bas final touches de raha hoon Tailwind ke sath, kuch styling improvements bachi hain.",
-      time: "20/09/2024, 09:42",
-      fromMe: false,
-    },
-    {
-      id: 6,
-      sender: "Nauman",
-      text: "Perfect! Aaj shaam tak final karna hai warna client se feedback late ho jayega.",
-      time: "20/09/2024, 09:45",
-      fromMe: true,
-    },
-    {
-      id: 7,
-      sender: "Ali",
-      text: "Haan, deadline ka dhyan hai. Milte hain lunch ke baad call pe!",
-      time: "20/09/2024, 09:50",
-      fromMe: false,
-    },
-  ];
+import React, { useState, useEffect, useRef } from "react";
+import user1 from "../../../assets/images/users-imgs/user17.jpeg"; // Assuming user image path
+
+const ChatPage = ({ selectedUser, setSelectedUser }) => {
+  const [message, setMessage] = useState("");
+  const [fadeInMessages, setFadeInMessages] = useState([]); // Tracks messages for fade-in effect
+  const chatContainerRef = useRef(null); // Reference for the chat container
+
+  const handleSubmitMessage = () => {
+    const newMessage = {
+      sender: "me",
+      text: message,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+
+    setSelectedUser((prevSelectedUser) => ({
+      ...prevSelectedUser,
+      chats: [...prevSelectedUser.chats, newMessage],
+    }));
+
+    // Add new message to fade-in effect array
+    setFadeInMessages((prev) => [...prev, newMessage]);
+
+    setMessage("");
+  };
+
+  useEffect(() => {
+    // Scroll to bottom when new message is added or chats change
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [selectedUser?.chats]);
+
+  useEffect(() => {
+    if (fadeInMessages.length) {
+      // Remove fade effect after some time
+      const timer = setTimeout(() => {
+        setFadeInMessages([]);
+      }, 300); // Time duration for transition
+
+      return () => clearTimeout(timer);
+    }
+  }, [fadeInMessages]);
 
   return (
     <div className="flex flex-col w-full">
       {/* Header */}
       <div className="flex items-center">
-        <img src={user1} alt="Zain" className="w-12 h-12 rounded-full mr-4" />
+        <img
+          src={selectedUser?.image || user1} // Use selectedUser image
+          alt={selectedUser?.name}
+          className="w-12 h-12 rounded-full mr-4"
+        />
         <div className="flex-grow">
-          <h3 className="text-lg font-bold">Noman Rashid</h3>
+          <h3 className="text-lg font-bold">{selectedUser?.name}</h3>{" "}
+          {/* Display user's name */}
         </div>
         <div className="flex space-x-3">
           <button className="">
@@ -72,32 +70,37 @@ const ChatPage = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {messages.map((message) => (
+      <div
+        className="flex-1 overflow-y-auto p-6 thin-scrollable"
+        ref={chatContainerRef} // Reference to the chat container
+      >
+        {selectedUser?.chats?.map((message, index) => (
           <div
-            key={message.id}
+            key={index} // Assuming chat messages are in order, using index for key
             className={`flex ${
-              message.fromMe ? "justify-end" : "justify-start"
-            } mb-4`}
+              message.sender === "me" ? "justify-end" : "justify-start"
+            } mb-4 transition-opacity duration-300 ease-in-out ${
+              fadeInMessages.includes(message) ? "opacity-0" : "opacity-100"
+            }`}
           >
-            {!message.fromMe && (
+            {message.sender !== "me" && (
               <img
-                src={user1}
-                alt="Zain"
+                src={selectedUser?.image || user1} // Use selectedUser image
+                alt={selectedUser?.name}
                 className="w-10 h-10 rounded-full mr-3"
               />
             )}
             <div
               className={`p-3 rounded-lg ${
-                message.fromMe
+                message.sender === "me"
                   ? "bg-blue-500 text-white"
                   : "bg-gray-800 text-gray-200"
               } max-w-xs`}
             >
               <p>{message.text}</p>
-              {message.time && (
+              {message.timestamp && (
                 <span className="text-xs text-white block mt-1">
-                  {message.time}
+                  {message.timestamp}
                 </span>
               )}
             </div>
@@ -111,9 +114,14 @@ const ChatPage = () => {
           <input
             type="text"
             placeholder="Message..."
+            value={message}
             className="flex-grow rounded-full px-4 py-2 focus:outline-none mr-4"
+            onChange={(e) => setMessage(e.target.value)}
           />
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full">
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full"
+            onClick={() => handleSubmitMessage()}
+          >
             Send
           </button>
         </div>
