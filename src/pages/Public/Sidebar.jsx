@@ -1,10 +1,10 @@
 import React from "react";
-import SearchIcon from "../../assets/images/action-icons/search.svg";
-import HomeIcon from "../../assets/images/action-icons/home.svg";
-import LikeIcon from "../../assets/images/action-icons/like.svg";
-import UserIcon from "../../assets/images/action-icons/user.svg";
-import MsgIcon from "../../assets/images/action-icons/msg.svg";
-import ReelsIcon from "../../assets/images/action-icons/reels.svg";
+import { ReactComponent as SearchIcon } from "../../assets/images/action-icons/search-default.svg";
+import { ReactComponent as HomeIcon } from "../../assets/images/action-icons/home-default.svg";
+import { ReactComponent as LikeIcon } from "../../assets/images/action-icons/like-default.svg";
+import { ReactComponent as UserIcon } from "../../assets/images/action-icons/user-default.svg";
+import { ReactComponent as MsgIcon } from "../../assets/images/action-icons/msg-default.svg";
+import { ReactComponent as ReelsIcon } from "../../assets/images/action-icons/reel-default.svg";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
@@ -13,27 +13,29 @@ const Sidebar = () => {
       <div className="h-full flex justify-between items-center flex-col">
         <button className="p-2">
           <Link to="/">
-            <img src={HomeIcon} className="w-6 h-6 text-gray-700" />
+            <HomeIcon className="w-6 h-6 text-gray-700" />
           </Link>
         </button>
         <button className="p-2">
           <Link to="/explore">
-            <img src={SearchIcon} className="w-6 h-6 text-gray-700" />
+            <SearchIcon className="w-6 h-6 text-gray-700" />
           </Link>
         </button>
         <button className="p-2">
-          <img src={ReelsIcon} className="w-6 h-6 text-gray-700" />
+          <ReelsIcon className="w-6 h-6 text-gray-700" />
         </button>
         <button className="p-2">
           <Link to="/inbox">
-            <img src={MsgIcon} className="w-6 h-6 text-gray-700" />
+            <MsgIcon className="w-6 h-6 text-gray-700" />
           </Link>
         </button>
         <button className="p-2">
-          <img src={LikeIcon} className="w-6 h-6 text-gray-700" />
+          <LikeIcon className="w-6 h-6 text-gray-700" />
         </button>
         <button className="p-2">
-          <img src={UserIcon} className="w-6 h-6 text-gray-700" />
+          <Link to="/profile">
+            <UserIcon className="w-6 h-6 text-gray-700" />
+          </Link>
         </button>
       </div>
     </div>

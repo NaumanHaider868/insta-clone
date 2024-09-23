@@ -344,3 +344,77 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
+
+.explore {
+  .search-icon {
+    background: url('../images/action-icons/search.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  .icon-reel-white {
+    background: url('../images/action-icons/reel-white.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-multiple-white {
+    background: url('../images/action-icons/more-post.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-comment {
+    background: url('../images/action-icons/comment-white.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.profile {
+  .icon-comment {
+    background: url('../images/action-icons/comment-white.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-reel-white {
+    background: url('../images/action-icons/reel-white.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-multiple-white {
+    background: url('../images/action-icons/more-post.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+}

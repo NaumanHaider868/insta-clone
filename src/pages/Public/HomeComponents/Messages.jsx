@@ -87,7 +87,6 @@ const MessagePage = () => {
   const [selectedUser, setSelectedUser] = useState();
 
   const userInfo = (user) => {
-    // console.log(user);
     setSelectedUser(user);
   };
   return (
