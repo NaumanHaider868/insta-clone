@@ -418,3 +418,7 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
     height: 20px;
   }
 }
+
+.active-icon {
+  filter: brightness(0) saturate(100%) invert(0);
+}
