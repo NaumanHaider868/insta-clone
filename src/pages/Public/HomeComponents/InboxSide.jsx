@@ -10,14 +10,6 @@ export default function InboxSide({
     <div className="w-[310px] p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Messages</h2>
-        {/* <div className="flex items-center space-x-2">
-          <button className="p-2 rounded-full">
-            <i className="fas fa-lock"></i>
-          </button>
-          <button className="p-2 rounded-full">
-            <i className="fas fa-edit"></i>
-          </button>
-        </div> */}
       </div>
 
       <div className="relative mb-4">
@@ -33,15 +25,13 @@ export default function InboxSide({
           {users.map((user) => (
             <div
               key={user.id}
-              className={`flex rounded-lg cursor-pointer ${
-                selectedUser?.id === user?.id ? "user-bg-active" : ""
-              }`}
+              className={`flex rounded-lg cursor-pointer ${selectedUser?.id === user?.id ? "user-bg-active" : ""
+                }`}
               onClick={() => setSelectedUser(user)}
             >
               <div
-                className={`flex p-[10px] w-full ${
-                  user.id !== 4 ? "border-b" : ""
-                }`}
+                className={`flex p-[10px] w-full ${user.id !== 4 ? "border-b" : ""
+                  }`}
               >
                 <div className="w-[57px] h-[46px] rounded-full bg-story relative">
                   <img
@@ -61,11 +51,10 @@ export default function InboxSide({
                           {user.name}
                         </h4>
                         <p
-                          className={`text-[12px] ${
-                            user.status === "new"
+                          className={`text-[12px] ${user.status === "new"
                               ? "text-[#0095F6] font-bold"
                               : "text-gray-400"
-                          }`}
+                            }`}
                         >
                           {user.lastMessage}
                         </p>

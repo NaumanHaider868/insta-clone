@@ -5,6 +5,7 @@ import MainLayout from "./pages/MainLayout";
 import Messages from "./pages/Public/HomeComponents/Messages";
 import UserProfile from "./pages/Public/HomeComponents/UserProfile";
 import ReelsPage from "./pages/Public/HomeComponents/Reels";
+import Notifications from "./pages/Public/HomeComponents/Notifications";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         <Route path="inbox" element={<Messages />} />
         <Route path="profile" element={<UserProfile />} />
         <Route path="reels" element={<ReelsPage />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
       {/* <Route path="/auth" element={<MainLayout />}>
           <Route path="login" element={<ExplorePage />} />

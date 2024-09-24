@@ -3,6 +3,7 @@ import user1 from "../../../assets/images/users-imgs/user18.jpeg";
 import user2 from "../../../assets/images/users-imgs/user12.jpeg";
 import user3 from "../../../assets/images/users-imgs/user17.jpeg";
 import user4 from "../../../assets/images/users-imgs/user13.jpeg";
+import user from "../../../assets/images/users-imgs/user6.jpg";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
 
@@ -12,6 +13,7 @@ const MessagePage = () => {
       id: 1,
       name: "Eman",
       image: user4,
+      senderImg: user,
       lastMessage: "2 new messages",
       status: "new",
       chats: [
@@ -27,6 +29,7 @@ const MessagePage = () => {
     {
       id: 2,
       name: "Zain",
+      senderImg: user,
       image: user2,
       lastMessage: "Sent 1m ago",
       status: "sent",
@@ -46,6 +49,7 @@ const MessagePage = () => {
     {
       id: 3,
       name: "Noman Rashid",
+      senderImg: user,
       image: user3,
       lastMessage: "Sent 1m ago",
       status: "online",
@@ -65,6 +69,7 @@ const MessagePage = () => {
     {
       id: 4,
       name: "Ali Haider",
+      senderImg: user,
       image: user1,
       lastMessage: "Seen",
       status: "seen",

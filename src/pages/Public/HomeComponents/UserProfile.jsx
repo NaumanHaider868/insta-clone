@@ -86,15 +86,15 @@ const UserProfile = () => {
 
                                 <div className="flex space-x-4 mt-[10px] mb-[10px]">
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="text-lg font-bold text-[14px]">225</span>
+                                        <span className="font-bold text-[14px]">225</span>
                                         <p className="text-sm text-gray-500">Posts</p>
                                     </div>
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="text-lg font-bold text-[14px]">225</span>
+                                        <span className="font-bold text-[14px]">225</span>
                                         <p className="text-sm text-gray-500">Followers</p>
                                     </div>
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="text-lg font-bold text-[14px]">225</span>
+                                        <span className="font-bold text-[14px]">225</span>
                                         <p className="text-sm text-gray-500">Following</p>
                                     </div>
                                 </div>
