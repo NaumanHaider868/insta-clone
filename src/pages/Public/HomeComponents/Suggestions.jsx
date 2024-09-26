@@ -32,8 +32,8 @@ const suggestions = [
 const Suggestions = () => {
   return (
     <>
-      <div className="w-[250px]">
-        <div className="actions w-full flex justify-end">
+      <div className="w-[250px] ml-7">
+        {/* <div className="actions w-full flex justify-end">
           <div className="story-row flex pr-0">
             <div className="next-button mr-5">
               <div className="circle">
@@ -46,7 +46,7 @@ const Suggestions = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="suggestions">
           <div className="suggestions-header">
             <span className="text-[#919191] text-[15px]">

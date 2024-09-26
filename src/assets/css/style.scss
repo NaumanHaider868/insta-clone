@@ -9,7 +9,7 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
   padding: 10px;
 
   .story {
-    margin-right: 20px;
+    margin-right: 22px;
 
     .add-story .plus-icon {
       width: 13px;
@@ -75,8 +75,8 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 70px;
-      height: 70px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       overflow: hidden;
 
@@ -85,8 +85,17 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
-        width: 20px;
-        height: 20px;
+        width: 5px;
+        height: 12px;
+      }
+
+      .back-icon {
+        background: url('../images/action-icons/arrow-left.svg');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        width: 5px;
+        height: 12px;
       }
     }
   }
@@ -421,4 +430,33 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 
 .active-icon {
   filter: brightness(0) saturate(100%) invert(0);
+}
+
+.action-dropdown {
+  .css-1xomo8h-MuiPaper-root-MuiPopover-paper-MuiMenu-paper {
+    top: 76px !important;
+    height: 404px;
+    width: 266px;
+    border-radius: 17px;
+  }
+
+  .css-99wn1p-MuiList-root-MuiMenu-list {
+    padding: 12px;
+  }
+
+  .css-1h4bzp1-MuiButtonBase-root-MuiMenuItem-root {
+    padding: 16px;
+    width: 100%;
+    border-radius: 10px;
+
+    svg {
+      font-size: 18px;
+      color: #000;
+    }
+
+    span {
+      color: #000;
+      font-size: 14px;
+    }
+  }
 }
