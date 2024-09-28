@@ -9,7 +9,7 @@ export default function InboxSide({
   return (
     <div className="w-[310px] p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Messages</h2>
+        <h2 className="text-xl font-bold dark:text-white">Messages</h2>
       </div>
 
       <div className="relative mb-4">
@@ -21,16 +21,16 @@ export default function InboxSide({
         <i className="msg-search-icon absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400"></i>
       </div>
       <div className="h-[368px] overflow-auto overflow-x-hidden thin-scrollable pr-1 ">
-        <div className="bg-white rounded-[20px]">
+        <div className="rounded-[20px]">
           {users.map((user) => (
             <div
               key={user.id}
-              className={`flex rounded-lg cursor-pointer ${selectedUser?.id === user?.id ? "user-bg-active" : ""
-                }`}
+              className={`flex rounded-lg cursor-pointer ${selectedUser?.id === user?.id ? "user-bg-active dark:bg-[#00000073]" : ""
+                } !rounded-xl`}
               onClick={() => setSelectedUser(user)}
             >
               <div
-                className={`flex p-[10px] w-full ${user.id !== 4 ? "border-b" : ""
+                className={`flex p-[10px] w-full ${user.id !== 4 ? "border-b dark:!border-none" : ""
                   }`}
               >
                 <div className="w-[57px] h-[46px] rounded-full bg-story relative">
@@ -47,13 +47,13 @@ export default function InboxSide({
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center">
                       <div className="ml-2">
-                        <h4 className="font-semibold cursor-pointer">
+                        <h4 className="font-semibold cursor-pointer dark:text-white">
                           {user.name}
                         </h4>
                         <p
                           className={`text-[12px] ${user.status === "new"
-                              ? "text-[#0095F6] font-bold"
-                              : "text-gray-400"
+                            ? "text-[#0095F6] font-bold"
+                            : "text-gray-400 dark:text-white"
                             }`}
                         >
                           {user.lastMessage}

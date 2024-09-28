@@ -32,9 +32,9 @@ function MainLayout() {
     }
   }, [darkMode]);
   return (
-    <div className="min-h-screen">
-      <div className={`main-home ${location.pathname === "/reels" ? "" : 'pt-4'} w-full h-screen`}>
-        {(location.pathname === '/inbox' || location.pathname === '/explore' || location.pathname === "/reels") ? null : <Navbar />}
+    <div className={`h-auto`}>
+      <div className={`main-home ${location.pathname === "/reels" ? "" : 'pt-4'} ${location.pathname === "/inbox" ? "h-screen" : 'h-auto'} w-full`}>
+        {(location.pathname === '/inbox' || location.pathname === '/explore' || location.pathname === "/reels") ? null : <Navbar darkMode={darkMode} />}
         <section className="sec-content flex h-full">
           <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} />
           <div className="content w-full h-full">

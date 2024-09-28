@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import user1 from '../../../assets/images/users-imgs/user6.jpg';
 
 const data = {
@@ -13,12 +13,19 @@ const data = {
         { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
     ],
 };
+
 const UserProfile = () => {
     const [activeTab, setActiveTab] = useState('Posts');
 
     const filteredData = activeTab === 'Reels'
         ? data['Reels']
         : data['Posts'];
+
+    let isDark;
+
+    useEffect(() => {
+        isDark = localStorage.getItem("dark-mode")
+    }, [])
 
     const tabs = [
         {
@@ -69,7 +76,7 @@ const UserProfile = () => {
     return (
         <div className="profile h-full">
             <div className="flex items-center pt-4 pb-8 pl-32">
-                <div className="bg-[#EFEFEF] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
+                <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
                     <div className="">
                         <div className="flex w-full ml-[10rem] gap-6 items-start p-6 max-w-lg">
                             <div className="w-[195px] rounded-full overflow-hidden mb-4 bg-story">
@@ -81,26 +88,26 @@ const UserProfile = () => {
                             </div>
 
                             <div className="flex flex-col">
-                                <h1 className="text-2xl font-semibold text-gray-900">Nauman Haider</h1>
-                                <p className="text-sm text-gray-500 mt-[5px] mb-[5px]">@naumanh</p>
+                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Nauman Haider</h1>
+                                <p className="text-sm text-gray-500 dark:text-white mt-[5px] mb-[5px]">@naumanh</p>
 
                                 <div className="flex space-x-4 mt-[10px] mb-[10px]">
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="font-bold text-[14px]">225</span>
-                                        <p className="text-sm text-gray-500">Posts</p>
+                                        <span className="font-bold text-[14px] dark:text-white">225</span>
+                                        <p className="text-sm text-gray-500 dark:text-white">Posts</p>
                                     </div>
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="font-bold text-[14px]">225</span>
-                                        <p className="text-sm text-gray-500">Followers</p>
+                                        <span className="font-bold text-[14px] dark:text-white">225</span>
+                                        <p className="text-sm text-gray-500 dark:text-white">Followers</p>
                                     </div>
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="font-bold text-[14px]">225</span>
-                                        <p className="text-sm text-gray-500">Following</p>
+                                        <span className="font-bold text-[14px] dark:text-white">225</span>
+                                        <p className="text-sm text-gray-500 dark:text-white">Following</p>
                                     </div>
                                 </div>
 
-                                <p>
-                                    <span className="font-bold">Bio</span>: It always seems impossible until it is done. 💖 Nature lover: 🌿⛰️🌸 Web Developer 💻
+                                <p className='dark:text-white'>
+                                    <span className="font-bold dark:text-white">Bio</span>: It always seems impossible until it is done. 💖 Nature lover: 🌿⛰️🌸 Web Developer 💻
                                 </p>
 
                                 <a
@@ -121,7 +128,7 @@ const UserProfile = () => {
                                 {tabs.map(({ name, icon }) => (
                                     <button
                                         onClick={() => setActiveTab(name)}
-                                        className={`flex items-center space-x-2 text-sm ${activeTab === name ? 'text-blue-600 underline font-bold' : 'text-gray-500 font-medium'}`}
+                                        className={`flex items-center space-x-2 text-sm ${activeTab === name ? 'text-blue-600 dark:text-white underline font-bold' : 'text-gray-500 dark:text-white font-medium'}`}
                                     >
                                         {icon}
                                         <span>{name}</span>

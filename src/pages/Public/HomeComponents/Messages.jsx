@@ -97,14 +97,14 @@ const MessagePage = () => {
   return (
     <div className="inbox h-full">
       <div className="flex items-center pt-4 pb-8 pl-32 h-full">
-        <div className="bg-[#EFEFEF] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10">
+        <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10">
           <InboxSide
             users={users}
             userInfo={userInfo}
             selectedUser={selectedUser}
             setSelectedUser={setSelectedUser}
           />
-          <div className="flex-1 bg-[#EFEFEF] p-4 flex w-full">
+          <div className="flex-1 bg-[#EFEFEF] dark:bg-[#1C1C1C] p-4 flex w-full">
             <UserChat
               selectedUser={selectedUser}
               setSelectedUser={setSelectedUser}

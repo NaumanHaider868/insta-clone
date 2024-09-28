@@ -47,12 +47,12 @@ const Suggestions = () => {
             </div>
           </div>
         </div> */}
-        <div className="suggestions">
+        <div className="suggestions dark:bg-[#ffffff1c]">
           <div className="suggestions-header">
-            <span className="text-[#919191] text-[15px]">
+            <span className="text-[#919191] text-[15px] dark:text-white">
               Suggested For You:
             </span>
-            <a href="/see-all">See All</a>
+            <a href="/see-all" className="dark:!text-white">See All</a>
           </div>
           <div className="suggestions-list">
             {suggestions.map((suggestion) => (
@@ -62,7 +62,7 @@ const Suggestions = () => {
                   alt={suggestion.username}
                   className="suggestion-avatar"
                 />
-                <span className="suggestion-username">
+                <span className="suggestion-username dark:!text-white">
                   {suggestion.username}
                 </span>
                 <a href="/follow" className="follow-link">

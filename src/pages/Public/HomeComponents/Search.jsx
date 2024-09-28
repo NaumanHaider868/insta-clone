@@ -38,22 +38,22 @@ function ExplorePage() {
   const cta = () => {
     return (
       <>
-        <div className="flex items-center space-x-4 p-6">
+        <div className="flex items-center space-x-4 p-6 explore-cta">
           <div className="flex items-center bg-white rounded-full px-3 py-[0.6rem] shadow-sm w-[350px]">
-            <i className="h-5 w-5 text-gray-400 search-icon"></i>
+            <i className="h-5 w-5 text-gray-400 dark:text-white search-icon"></i>
             <input
               type="text"
               placeholder="Search"
-              className="ml-2 w-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
+              className="ml-2 w-full bg-transparent outline-none text-gray-700 dark:text-white placeholder-gray-400"
             />
           </div>
 
-          <div className="flex space-x-6">
+          <div className="flex space-x-6 explore-tabs">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`text-sm ${activeTab === tab ? 'text-blue-600 underline font-bold' : 'text-gray-500 font-medium'}`}
+                className={`text-sm ${activeTab === tab ? 'text-blue-600 underline font-bold dark:text-white' : 'text-gray-500 font-medium dark:text-white'}`}
               >
                 {tab}
               </button>
@@ -69,11 +69,11 @@ function ExplorePage() {
   return (
     <div className="explore h-full">
       <div className="flex items-center pt-4 pb-8 pl-32 h-full">
-        <div className="bg-[#EFEFEF] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
+        <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
           <div>{cta()}</div>
           <div className="h-full overflow-auto thin-scrollable p-6">
             <div className="container mx-auto">
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid-res grid grid-cols-4 gap-4">
                 {data[activeTab].map((image) => (
                   <div key={image.id} className={`relative cursor-pointer group`}>
                     <img src={image.src} alt={`Image ${image.id}`} className="w-full h-full object-cover rounded-lg" />

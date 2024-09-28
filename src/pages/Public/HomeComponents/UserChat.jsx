@@ -53,13 +53,13 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
               className="w-12 h-12 rounded-full mr-4"
             />
             <div className="flex-grow">
-              <h3 className="text-lg font-bold">{selectedUser?.name}</h3>{" "}
+              <h3 className="text-lg font-bold dark:text-white">{selectedUser?.name}</h3>{" "}
             </div>
             <div className="flex space-x-3">
-              <button className="">
+              <button className="dark:text-white">
                 <i className="fas fa-phone-alt"></i>
               </button>
-              <button className="">
+              <button className="dark:text-white">
                 <i className="fas fa-video"></i>
               </button>
             </div>
@@ -100,7 +100,7 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
           </div>
 
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t px-0 border-t-[#a5a5a58f] dark:border-t-[#ffffff26]">
             <div className="flex items-center">
               <input
                 type="text"
@@ -120,7 +120,7 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
         </div>
       ) : (
         <div className="flex justify-center items-center h-full m-auto">
-          <h2 className="text-gray-500 text-lg">
+          <h2 className="text-gray-500 text-lg dark:text-white">
             Please select a user to chat.
           </h2>
         </div>
