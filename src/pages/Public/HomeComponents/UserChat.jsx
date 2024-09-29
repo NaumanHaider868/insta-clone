@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const ChatPage = ({ selectedUser, setSelectedUser }) => {
+const UserChat = ({ selectedUser, setSelectedUser, clearSelectedUser }) => {
   const [message, setMessage] = useState("");
   const [fadeInMessages, setFadeInMessages] = useState([]);
   const chatContainerRef = useRef(null);
@@ -41,19 +41,24 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
       return () => clearTimeout(timer);
     }
   }, [fadeInMessages]);
-  console.log(selectedUser)
+
   return (
     <>
       {selectedUser ? (
         <div className="flex flex-col w-full">
           <div className="flex items-center">
+            <button onClick={clearSelectedUser} className="mr-4">
+              <i className="fas fa-arrow-left dark:text-white"></i>
+            </button>
             <img
               src={selectedUser?.image}
               alt={selectedUser?.name}
               className="w-12 h-12 rounded-full mr-4"
             />
             <div className="flex-grow">
-              <h3 className="text-lg font-bold dark:text-white">{selectedUser?.name}</h3>{" "}
+              <h3 className="text-lg font-bold dark:text-white">
+                {selectedUser?.name}
+              </h3>
             </div>
             <div className="flex space-x-3">
               <button className="dark:text-white">
@@ -70,21 +75,20 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
             ref={chatContainerRef}
           >
             {selectedUser?.chats?.map((message, index) => (
-              <div className="">
+              <div className="message-container" key={index}>
                 <div
-                  key={index}
                   className={`flex ${message.sender === "me" ? "justify-end float-right flex-row-reverse" : "justify-start"
                     } mb-4 transition-opacity duration-300 ease-in-out ${fadeInMessages.includes(message) ? "opacity-0" : "opacity-100"
                     }`}
                 >
                   <img
                     src={message.sender === "me" ? selectedUser?.senderImg : selectedUser?.image}
-                    className={`w-10 h-10 rounded-full ${message.sender === "me" ? 'ml-3' : 'mr-3'}`}
+                    className={`w-10 h-10 rounded-full ${message.sender === "me" ? "ml-3" : "mr-3"}`}
                   />
                   <div
-                    className={`p-3 rounded-lg ${message.sender === "me"
+                    className={`p-[8px] rounded-lg ${message.sender === "me"
                       ? "bg-blue-500 text-white"
-                      : "bg-gray-800 text-gray-200"
+                      : "bg-gray-800 dark:bg-[#4e4e4e] text-gray-200"
                       } max-w-xs`}
                   >
                     <p>{message.text}</p>
@@ -99,7 +103,6 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
             ))}
           </div>
 
-
           <div className="p-4 border-t px-0 border-t-[#a5a5a58f] dark:border-t-[#ffffff26]">
             <div className="flex items-center">
               <input
@@ -111,7 +114,7 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
               />
               <button
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full"
-                onClick={() => handleSubmitMessage()}
+                onClick={handleSubmitMessage}
               >
                 Send
               </button>
@@ -129,4 +132,4 @@ const ChatPage = ({ selectedUser, setSelectedUser }) => {
   );
 };
 
-export default ChatPage;
+export default UserChat;

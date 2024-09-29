@@ -7,12 +7,15 @@ export default function InboxSide({
   setSelectedUser,
 }) {
   return (
-    <div className="w-[310px] p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold dark:text-white">Messages</h2>
+    <div className="w-[310px] p-4 inbox-side">
+      <div className="flex items-center justify-between mb-4 inbox-head">
+        <h2 className="text-xl font-bold dark:text-white inbox-head-text">Messages</h2>
+        <div className="inbox-head-icon">
+          <i className="icon"></i>
+        </div>
       </div>
 
-      <div className="relative mb-4">
+      <div className="relative mb-4 inbox-find">
         <input
           type="text"
           placeholder="Search"
@@ -33,7 +36,7 @@ export default function InboxSide({
                 className={`flex p-[10px] w-full ${user.id !== 4 ? "border-b dark:!border-none" : ""
                   }`}
               >
-                <div className="w-[57px] h-[46px] rounded-full bg-story relative">
+                <div className="w-[57px] h-[46px] rounded-full bg-story relative inbox-user-img">
                   <img
                     className="w-full h-full rounded-full cursor-pointer p-[2px]"
                     src={user.image}
@@ -43,7 +46,7 @@ export default function InboxSide({
                     <span className="absolute w-[12px] h-[12px] rounded-full cursor-pointer bg-[#14D41C] bottom-[0px] right-[3px]"></span>
                   )}
                 </div>
-                <div className="flex w-full flex-col relative">
+                <div className="flex w-full flex-col relative inbox-user-detail">
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center">
                       <div className="ml-2">

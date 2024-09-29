@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import user1 from "../../../assets/images/users-imgs/user18.jpeg";
 import user2 from "../../../assets/images/users-imgs/user12.jpeg";
 import user3 from "../../../assets/images/users-imgs/user17.jpeg";
@@ -90,24 +90,45 @@ const MessagePage = () => {
   ]);
 
   const [selectedUser, setSelectedUser] = useState();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
   const userInfo = (user) => {
     setSelectedUser(user);
   };
+
+  const clearSelectedUser = () => {
+    setSelectedUser(null);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 600);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <div className="inbox h-full">
       <div className="flex items-center pt-4 pb-8 pl-32 h-full">
-        <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10">
-          <InboxSide
-            users={users}
-            userInfo={userInfo}
-            selectedUser={selectedUser}
-            setSelectedUser={setSelectedUser}
-          />
-          <div className="flex-1 bg-[#EFEFEF] dark:bg-[#1C1C1C] p-4 flex w-full">
+        <div className={`bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10`}>
+          <div className={`${isMobile ? (selectedUser ? "hide-inbox" : "show-inbox") : ''}`}>
+            <InboxSide
+              users={users}
+              userInfo={userInfo}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+            />
+          </div>
+          <div className={`flex-1 bg-[#EFEFEF] dark:bg-[#1C1C1C] p-4 flex w-full inbox-msg ${isMobile ? (selectedUser ? "show-chat" : "hide-chat") : ''}`}>
             <UserChat
               selectedUser={selectedUser}
               setSelectedUser={setSelectedUser}
+              clearSelectedUser={clearSelectedUser}
             />
           </div>
         </div>

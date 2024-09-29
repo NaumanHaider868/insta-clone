@@ -195,8 +195,9 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
             anchor="right"
             open={isOpen}
             onClose={toggleDrawer(false)}
+            className="notification-drawer-w dark:notification-drawer-b"
           >
-            <div className="bg-[#EFEFEF] dark:bg-[#1C1C1C] text-black dark:text-white p-4 max-w-md mx-auto">
+            <div className="text-black dark:text-white p-4 max-w-md mx-auto">
               <h2 className="text-2xl font-bold mb-4">Notifications</h2>
 
               {notifications.map((item) => (

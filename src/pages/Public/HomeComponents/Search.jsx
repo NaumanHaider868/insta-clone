@@ -67,41 +67,39 @@ function ExplorePage() {
   const tabs = ['For you', 'Trending', 'Top', 'Recent', 'Reels'];
 
   return (
-    <div className="explore h-full">
-      <div className="flex items-center pt-4 pb-8 pl-32 h-full">
-        <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
-          <div>{cta()}</div>
+    <div className="explore h-full px-4 md:px-32">
+      <div className="flex items-center pt-4 pb-8 h-full">
+        <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
+          {cta()}
           <div className="h-full overflow-auto thin-scrollable p-6">
-            <div className="container mx-auto">
-              <div className="grid-res grid grid-cols-4 gap-4">
-                {data[activeTab].map((image) => (
-                  <div key={image.id} className={`relative cursor-pointer group`}>
-                    <img src={image.src} alt={`Image ${image.id}`} className="w-full h-full object-cover rounded-lg" />
-                    {image.isReel && (
-                      <div className="absolute top-2 right-2 text-white">
-                        <i className="h-6 w-6 icon-reel-white"></i>
+            <div className="grid grid-res gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {data[activeTab].map((image) => (
+                <div key={image.id} className="relative cursor-pointer group">
+                  <img src={image.src} alt={`Image ${image.id}`} className="w-full h-full object-cover rounded-lg" />
+                  {image.isReel && (
+                    <div className="absolute top-2 right-2 text-white">
+                      <i className="h-6 w-6 icon-reel-white"></i>
+                    </div>
+                  )}
+                  {image.isMultiple && (
+                    <div className="absolute top-2 right-2 text-white">
+                      <i className="h-6 w-6 icon-multiple-white"></i>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black rounded-lg bg-opacity-50 opacity-0 group-hover:opacity-100 flex justify-center items-center transition-opacity duration-300">
+                    <div className="text-white text-lg flex space-x-4">
+                      <div className="flex items-center space-x-1">
+                        <i className="far fa-heart"></i>
+                        <span>{image.likes}</span>
                       </div>
-                    )}
-                    {image.isMultiple && (
-                      <div className="absolute top-2 right-2 text-white">
-                        <i className="h-6 w-6 icon-multiple-white"></i>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black rounded-lg bg-opacity-50 opacity-0 group-hover:opacity-100 flex justify-center items-center transition-opacity duration-300">
-                      <div className="text-white text-lg flex space-x-4">
-                        <div className="flex items-center space-x-1">
-                          <i class="far fa-heart"></i>
-                          <span>{image.likes}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <i class="icon-comment"></i>
-                          <span>{image.comments}</span>
-                        </div>
+                      <div className="flex items-center space-x-1">
+                        <i className="icon-comment"></i>
+                        <span>{image.comments}</span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
