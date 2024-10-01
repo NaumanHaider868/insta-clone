@@ -77,9 +77,9 @@ const UserProfile = () => {
         <div className="profile h-full">
             <div className="flex items-center pt-4 pb-8 pl-32">
                 <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
-                    <div className="">
-                        <div className="flex w-full ml-[10rem] gap-6 items-start p-6 max-w-lg">
-                            <div className="w-[195px] rounded-full overflow-hidden mb-4 bg-story">
+                    <div className="flex flex-col items-center main-profile">
+                        <div className="flex w-full gap-6 items-start p-6 max-w-lg user-profile">
+                            <div className="w-[195px] rounded-full overflow-hidden mb-4 bg-story user-profile-img">
                                 <img
                                     src={user1}
                                     alt="Profile"
@@ -87,7 +87,7 @@ const UserProfile = () => {
                                 />
                             </div>
 
-                            <div className="flex flex-col">
+                            <div className="flex flex-col user-profile-deatil">
                                 <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Nauman Haider</h1>
                                 <p className="text-sm text-gray-500 dark:text-white mt-[5px] mb-[5px]">@naumanh</p>
 
@@ -124,7 +124,7 @@ const UserProfile = () => {
                         </div>
 
                         <div className="p-6 w-full flex flex-col items-center">
-                            <div className="flex space-x-6">
+                            <div className="flex space-x-6 ml-[8rem] profile-tabs">
                                 {tabs.map(({ name, icon }) => (
                                     <button
                                         onClick={() => setActiveTab(name)}
@@ -137,7 +137,7 @@ const UserProfile = () => {
                             </div>
 
                             <div className="container mx-auto mt-6">
-                                <div className="grid grid-cols-4 gap-4">
+                                <div className="grid-profile grid grid-cols-4 gap-4">
                                     {filteredData.map((image) => (
                                         <div key={image.id} className="relative group">
                                             <img

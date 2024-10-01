@@ -7,7 +7,7 @@ import user from "../../../assets/images/users-imgs/user6.jpg";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
 
-const MessagePage = () => {
+const MessagePage = ({ isMobile, setIsMobile }) => {
   const [users] = useState([
     {
       id: 1,
@@ -90,7 +90,6 @@ const MessagePage = () => {
   ]);
 
   const [selectedUser, setSelectedUser] = useState();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
   const userInfo = (user) => {
     setSelectedUser(user);
@@ -99,18 +98,6 @@ const MessagePage = () => {
   const clearSelectedUser = () => {
     setSelectedUser(null);
   };
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 600);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   return (
     <div className="inbox h-full">
@@ -129,6 +116,7 @@ const MessagePage = () => {
               selectedUser={selectedUser}
               setSelectedUser={setSelectedUser}
               clearSelectedUser={clearSelectedUser}
+              isMobile={isMobile}
             />
           </div>
         </div>

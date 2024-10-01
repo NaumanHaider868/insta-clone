@@ -22,7 +22,7 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
-const Sidebar = ({ darkMode, setDarkMode }) => {
+const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -198,7 +198,14 @@ const Sidebar = ({ darkMode, setDarkMode }) => {
             className="notification-drawer-w dark:notification-drawer-b"
           >
             <div className="text-black dark:text-white p-4 max-w-md mx-auto">
-              <h2 className="text-2xl font-bold mb-4">Notifications</h2>
+              <div className="flex items-center mb-4">
+                {isMobile && (
+                  <button className="mr-4" onClick={toggleDrawer(false)}>
+                    <i className="fas fa-arrow-left dark:text-white"></i>
+                  </button>
+                )}
+                <h2 className="text-2xl font-bold">Notifications</h2>
+              </div>
 
               {notifications.map((item) => (
                 <div key={item.id} className="mb-6">

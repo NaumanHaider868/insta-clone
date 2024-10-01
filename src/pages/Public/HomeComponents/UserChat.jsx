@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const UserChat = ({ selectedUser, setSelectedUser, clearSelectedUser }) => {
+const UserChat = ({ selectedUser, setSelectedUser, clearSelectedUser, isMobile }) => {
   const [message, setMessage] = useState("");
   const [fadeInMessages, setFadeInMessages] = useState([]);
   const chatContainerRef = useRef(null);
@@ -47,9 +47,11 @@ const UserChat = ({ selectedUser, setSelectedUser, clearSelectedUser }) => {
       {selectedUser ? (
         <div className="flex flex-col w-full">
           <div className="flex items-center">
-            <button onClick={clearSelectedUser} className="mr-4">
-              <i className="fas fa-arrow-left dark:text-white"></i>
-            </button>
+            {isMobile && (
+              <button onClick={clearSelectedUser} className="mr-4">
+                <i className="fas fa-arrow-left dark:text-white"></i>
+              </button>
+            )}
             <img
               src={selectedUser?.image}
               alt={selectedUser?.name}

@@ -64,8 +64,8 @@ const Post = () => {
                 {postData.map((post) => (
                   <div key={post.id} className="posts mb-4">
                     <div className="bg-[#EFEFEF] rounded-[25px] dark:bg-[#ffffff1c]">
-                      <div className="rounded-3xl flex overflow-hidden max-w-4xl p-[14px] dark:text-white">
-                        <div className="w-2/3 relative">
+                      <div className="rounded-3xl flex overflow-hidden max-w-[57rem] p-[14px] dark:text-white">
+                        <div className="w-[56%] relative">
                           <img
                             src={post.content.image}
                             alt="Post"
@@ -84,7 +84,7 @@ const Post = () => {
                           </div>
                         </div>
 
-                        <div className="w-1/3 p-5">
+                        <div className="w-[44%] p-5 pr-0">
                           <div className="flex items-center mb-4">
                             <div className="avatar-post-div w-10 h-10 rounded-full mr-3">
                               <img
