@@ -54,18 +54,18 @@ const Post = () => {
   return (
     <div className="content w-full h-full pt-5">
       <div className="flex">
-        <div className="1 w-full h-full pl-32 flex ">
-          <div className="w-full">
+        <div className="1 w-full h-full md:px-32 flex main-content">
+          <div className="w-full main-content-w">
             <div className="story-content pb-5 w-[75%]">
               <StoryRow />
             </div>
-            <div className="flex">
-              <div className="main-home pt-4 w-[75%] h-full">
+            <div className="flex main-home">
+              <div className="pt-4 content w-[75%] h-full">
                 {postData.map((post) => (
                   <div key={post.id} className="posts mb-4">
-                    <div className="bg-[#EFEFEF] rounded-[25px] dark:bg-[#ffffff1c]">
+                    <div className="bg-[#EFEFEF] rounded-[25px] dark:bg-[#ffffff1c] post">
                       <div className="rounded-3xl flex overflow-hidden max-w-[57rem] p-[14px] dark:text-white">
-                        <div className="w-[56%] relative">
+                        <div className="w-[56%] relative post-content">
                           <img
                             src={post.content.image}
                             alt="Post"
@@ -84,7 +84,7 @@ const Post = () => {
                           </div>
                         </div>
 
-                        <div className="w-[44%] p-5 pr-0">
+                        <div className="w-[44%] p-5 pr-0 post-detail">
                           <div className="flex items-center mb-4">
                             <div className="avatar-post-div w-10 h-10 rounded-full mr-3">
                               <img
@@ -184,7 +184,7 @@ const Post = () => {
                   </div>
                 ))}
               </div>
-              <div className="w-[25%]">
+              <div className="content-suggestion w-[25%]">
                 <Suggestions />
               </div>
             </div>

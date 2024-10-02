@@ -72,7 +72,7 @@ function ExplorePage() {
         <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
           {cta()}
           <div className="h-full overflow-auto thin-scrollable p-6">
-            <div className="grid grid-res gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            <div className="grid grid-res gap-4 grid-cols-4">
               {data[activeTab].map((image) => (
                 <div key={image.id} className="relative cursor-pointer group">
                   <img src={image.src} alt={`Image ${image.id}`} className="w-full h-full object-cover rounded-lg" />
