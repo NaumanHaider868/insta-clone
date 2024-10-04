@@ -101,8 +101,8 @@ const MessagePage = ({ isMobile, setIsMobile }) => {
 
   return (
     <div className="inbox h-full">
-      <div className="flex items-center pt-4 pb-8 pl-32 h-full">
-        <div className={`bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10`}>
+      <div className="inbox-content flex items-center pt-4 pb-8 h-full">
+        <div className={`bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full`}>
           <div className={`${isMobile ? (selectedUser ? "hide-inbox" : "show-inbox") : ''}`}>
             <InboxSide
               users={users}

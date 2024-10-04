@@ -15,6 +15,10 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 }
 
 .sec-content {
+  @media (max-width:978px) {
+    margin-bottom: 40px;
+  }
+
   .sidebar-container {
     @media (max-width:978px) {
       z-index: 1;
@@ -48,8 +52,6 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 
   @media (max-width:978px) {
     .content.w-full.h-full {
-      margin-bottom: 40px;
-
       .main-content {
         padding: unset;
       }
@@ -221,6 +223,8 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 }
 
 .main-content {
+  padding-left: 8rem;
+
   @media (max-width:1360px) {
     .main-home .content {
       width: 74%;
@@ -233,10 +237,15 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 
   @media (max-width:1260px) {
     // justify-content: center;
+    padding-right: 8rem;
 
     .main-content-w {
-      width: 50rem;
-      margin: auto;
+      // width: 50rem;
+      // margin: auto;
+      margin: 0;
+      padding-left: 20px;
+      padding-right: 20px;
+      margin-bottom: 40px;
     }
 
     .story-content {
@@ -255,7 +264,7 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
       justify-content: center;
 
       .content {
-        width: 50rem;
+        width: 100%;
       }
 
       .content-suggestion {
@@ -268,15 +277,17 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
     }
   }
 
-  .main-content-w {
-    @media (max-width:840px) {
-      width: 46rem;
-    }
-  }
+  // .main-content-w {
+  //   @media (max-width:840px) {
+  //     width: 46rem;
+  //   }
+  // }
 
   @media (max-width:768px) {
     .main-content-w {
-      width: 40rem;
+      width: 100%;
+      padding-left: 30px;
+      padding-right: 30px;
     }
 
     .posts .post .rounded-3xl.flex {
@@ -319,14 +330,14 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
   }
 
   .show-all-comments {
-    background: white;
-    border: 1px solid;
-    border-radius: 40px;
+    // background: white;
+    // border: 1px solid;
+    // border-radius: 40px;
     padding: 10px;
-    cursor: pointer;
+    // cursor: pointer;
 
     p {
-      color: #9A9A9A;
+      // color: #9A9A9A;
       font-weight: 500;
     }
   }
@@ -423,6 +434,16 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 // inbox style
 
 .inbox {
+  .inbox-content {
+    padding-left: 8rem;
+    padding-right: 1.9rem;
+
+    @media (max-width:980px) {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+
   .msg-search-icon {
     background: url('../images/action-icons/search.svg');
     background-repeat: no-repeat;
@@ -606,6 +627,15 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 }
 
 .explore {
+  padding-left: 8rem;
+  padding-right: 1.8rem;
+
+  @media (max-width:980px) {
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-bottom: 20px;
+  }
+
   .search-icon {
     background: url('../images/action-icons/search.svg');
     background-repeat: no-repeat;
@@ -652,7 +682,7 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
     }
   }
 
-  @media (max-width:990px) {
+  @media (max-width:768px) {
     .explore-cta {
       flex-direction: column;
 
@@ -663,7 +693,7 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
     }
   }
 
-  @media (max-width:900px) {
+  @media (max-width:570px) {
     .grid-res {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -671,6 +701,18 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 }
 
 .profile {
+  padding-left: 8rem;
+  padding-right: 1.9rem;
+
+  @media (max-width:978px) {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .edit-btn {
+    width: 190px;
+  }
+
   .icon-comment {
     background: url('../images/action-icons/comment-white.svg');
     background-position: center;
@@ -799,5 +841,13 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
 .notification-drawer-w {
   .css-eydqou-MuiPaper-root-MuiDrawer-paper {
     background: #1C1C1C;
+  }
+}
+
+.notification-sideDrawer {
+  max-width: 28rem;
+
+  @media (max-width:600px) {
+    max-width: 100%;
   }
 }

@@ -75,10 +75,10 @@ const UserProfile = () => {
 
     return (
         <div className="profile h-full">
-            <div className="flex items-center pt-4 pb-8 pl-32">
-                <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full mr-10 flex-col">
+            <div className="flex items-center pt-4 pb-8">
+                <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
                     <div className="flex flex-col items-center main-profile">
-                        <div className="flex w-full gap-6 items-start p-6 max-w-lg user-profile">
+                        <div className="flex w-full gap-6 items-start p-6 user-profile">
                             <div className="w-[195px] rounded-full overflow-hidden mb-4 bg-story user-profile-img">
                                 <img
                                     src={user1}
@@ -117,7 +117,7 @@ const UserProfile = () => {
                                     https://www.linkedin.com/in/nauman-haider-107002295/
                                 </a>
 
-                                <button className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-[50px] font-medium text-gray-700">
+                                <button className="edit-btn mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-[50px] font-medium text-gray-700">
                                     Edit Profile
                                 </button>
                             </div>

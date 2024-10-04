@@ -16,9 +16,7 @@ import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 import { Drawer } from "@mui/material";
-import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiMessageCircle, FiUser, FiLogOut } from 'react-icons/fi';
-import { FiMoreVertical } from 'react-icons/fi';
-import Button from '@mui/material/Button';
+import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut } from 'react-icons/fi';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
@@ -149,46 +147,48 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
               )}
             </Link>
           </button>
-          <button className={`p-2`}>
-            <img src={open ? ActionIcon : ActionIconDefault} className="w-6 h-6 text-gray-700 dark:!text-white transform scale-x-[-1]" onClick={handleClick} />
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              disableScrollLock={true}
-              onClose={handleClose}
-              className="action-dropdown"
-            >
-              <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
-                <FiSettings className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Settings</span>
-              </MenuItem>
-              <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
-                <FiActivity className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Your activity</span>
-              </MenuItem>
-              <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
-                <FiBookmark className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Saved</span>
-              </MenuItem>
-              <MenuItem onClick={() => setDarkMode(!darkMode)} className="flex items-center space-x-2 p-3">
-                <FiMoon className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Switch appearance</span>
-              </MenuItem>
-              <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
-                <FiAlertCircle className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Report a problem</span>
-              </MenuItem>
-              <div className="border-t my-1"></div>
-              <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
-                <FiUser className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Switch accounts</span>
-              </MenuItem>
-              <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
-                <FiLogOut className="text-gray-500 dark:!text-white" />
-                <span className="dark:!text-white">Log out</span>
-              </MenuItem>
-            </Menu>
-          </button>
+          <div className="relative">
+            <button className={`p-2`}>
+              <img src={open ? ActionIcon : ActionIconDefault} className="w-6 h-6 text-gray-700 dark:!text-white transform scale-x-[-1]" onClick={handleClick} />
+              <Menu
+                anchorEl={anchorEl}
+                open={open}
+                disableScrollLock={true}
+                onClose={handleClose}
+                className="action-dropdown"
+              >
+                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                  <FiSettings className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Settings</span>
+                </MenuItem>
+                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                  <FiActivity className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Your activity</span>
+                </MenuItem>
+                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                  <FiBookmark className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Saved</span>
+                </MenuItem>
+                <MenuItem onClick={() => setDarkMode(!darkMode)} className="flex items-center space-x-2 p-3">
+                  <FiMoon className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Switch appearance</span>
+                </MenuItem>
+                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                  <FiAlertCircle className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Report a problem</span>
+                </MenuItem>
+                <div className="border-t my-1"></div>
+                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                  <FiUser className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Switch accounts</span>
+                </MenuItem>
+                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                  <FiLogOut className="text-gray-500 dark:!text-white" />
+                  <span className="dark:!text-white">Log out</span>
+                </MenuItem>
+              </Menu>
+            </button>
+          </div>
         </div>
         {isOpen && (
           <Drawer
@@ -197,7 +197,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
             onClose={toggleDrawer(false)}
             className="notification-drawer-w dark:notification-drawer-b"
           >
-            <div className="text-black dark:text-white p-4 max-w-md mx-auto">
+            <div className="text-black dark:text-white p-4 notification-sideDrawer mx-auto">
               <div className="flex items-center mb-4">
                 {isMobile && (
                   <button className="mr-4" onClick={toggleDrawer(false)}>

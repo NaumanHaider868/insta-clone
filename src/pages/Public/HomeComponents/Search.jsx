@@ -10,14 +10,14 @@ function ExplorePage() {
       { id: 2, src: '/src/assets/images/users-imgs/explore2.jpg', likes: '5k', comments: '1k', isReel: false, isMultiple: true },
       { id: 3, src: '/src/assets/images/users-imgs/explore3.jpg', likes: '20k', comments: '3k', isReel: true, isMultiple: false },
       { id: 4, src: '/src/assets/images/users-imgs/explore4.jpg', likes: '12k', comments: '1k', isReel: false, isMultiple: false },
-      { id: 5, src: '/src/assets/images/users-imgs/explore5.jpg', likes: '30k', comments: '5k', isReel: false, isMultiple: false },
+      // { id: 5, src: '/src/assets/images/users-imgs/explore5.jpg', likes: '30k', comments: '5k', isReel: false, isMultiple: false },
       { id: 6, src: '/src/assets/images/users-imgs/explore6.jpg', likes: '8k', comments: '900', isReel: false, isMultiple: false },
       { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
       { id: 8, src: '/src/assets/images/users-imgs/explore8.jpg', likes: '25k', comments: '4k', isReel: false, isMultiple: false },
       { id: 9, src: '/src/assets/images/users-imgs/user13.jpg', likes: '18k', comments: '2.5k', isReel: false, isMultiple: false }
     ],
     'Trending': [
-      { id: 5, src: '/src/assets/images/users-imgs/explore5.jpg', likes: '30k', comments: '5k', isReel: false, isMultiple: false },
+      // { id: 5, src: '/src/assets/images/users-imgs/explore5.jpg', likes: '30k', comments: '5k', isReel: false, isMultiple: false },
       { id: 6, src: '/src/assets/images/users-imgs/explore6.jpg', likes: '8k', comments: '900', isReel: false, isMultiple: false },
       { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
     ],
@@ -67,7 +67,7 @@ function ExplorePage() {
   const tabs = ['For you', 'Trending', 'Top', 'Recent', 'Reels'];
 
   return (
-    <div className="explore h-full px-4 md:px-32">
+    <div className="explore h-full">
       <div className="flex items-center pt-4 pb-8 h-full">
         <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
           {cta()}

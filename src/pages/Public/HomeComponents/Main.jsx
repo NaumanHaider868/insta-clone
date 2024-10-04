@@ -54,7 +54,7 @@ const Post = () => {
   return (
     <div className="content w-full h-full pt-5">
       <div className="flex">
-        <div className="1 w-full h-full md:px-32 flex main-content">
+        <div className="1 w-full h-full flex main-content">
           <div className="w-full main-content-w">
             <div className="story-content pb-5 w-[75%]">
               <StoryRow />
@@ -101,12 +101,11 @@ const Post = () => {
                                 {post.user.postedTime}
                               </p>
                             </div>
-                            <button className="ml-auto text-gray-500 dark:text-white">
-                              &#x2022;&#x2022;&#x2022;
+                            <button className="ml-auto text-gray-500 dark:text-white font-bold text-[22px]">
+                              &#8942;
                             </button>
                           </div>
 
-                          {/* Post Text */}
                           <p className="text-sm mb-4">
                             {post.content.text}{" "}
                             <span className="text-gray-500 cursor-pointer dark:text-white">
@@ -114,7 +113,6 @@ const Post = () => {
                             </span>
                           </p>
 
-                          {/* Likes and Icons */}
                           <div className="flex mb-4 flex-col">
                             <div className="action-div w-[188px] h-[46px] bg-[#F8F8F8] rounded-full flex items-center justify-center">
                               <button className="mr-3 w-[20px] h-[20px]">
@@ -135,7 +133,6 @@ const Post = () => {
                             </p>
                           </div>
 
-                          {/* Comment Section */}
                           <div className="text-sm">
                             <div className="flex items-start mb-3">
                               <img
@@ -169,13 +166,6 @@ const Post = () => {
                             </div>
                             <p className="text-xs text-gray-500 mb-4 cursor-pointer dark:text-white">
                               View all {post.content.comments} comments
-                            </p>
-                          </div>
-
-                          {/* Scroll for More Comments */}
-                          <div className="text-center show-all-comments">
-                            <p className="text-xs text-gray-500 dark:text-white">
-                              Scroll down to read others comments
                             </p>
                           </div>
                         </div>

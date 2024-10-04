@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../../../assets/css/style.scss";
+// import StoryCarousel from "./StoryCarousel";
 
 const stories = [
   { id: 1, imgSrc: "/src/assets/images/users-imgs/user6.jpg", isUser: true },
@@ -24,26 +25,24 @@ const userStory = stories.find((story) => story.isUser);
 const otherStories = stories.filter((story) => !story.isUser);
 
 const StoryRow = () => {
+  const [open, setOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(9); // Default to 9 stories on small screens
+  const [visibleCount, setVisibleCount] = useState(9);
   const containerRef = useRef(null);
 
-  // Function to calculate how many stories fit based on the container's width
   const calculateVisibleStories = () => {
     if (containerRef.current) {
       const containerWidth = containerRef.current.offsetWidth;
-      const storyWidth = 90; // Assuming each story box is 90px wide
+      const storyWidth = 90;
       const storiesToShow = Math.floor(containerWidth / storyWidth);
       setVisibleCount(storiesToShow);
     }
   };
 
-  // Run this calculation when the window resizes
   useEffect(() => {
     calculateVisibleStories();
     window.addEventListener("resize", calculateVisibleStories);
 
-    // Cleanup the event listener on unmount
     return () => {
       window.removeEventListener("resize", calculateVisibleStories);
     };
@@ -78,7 +77,6 @@ const StoryRow = () => {
         )}
       </div>
 
-      {/* Other users' stories */}
       <div className="other-users flex w-full relative" ref={containerRef}>
         {currentIndex > 0 && (
           <div className="next-button top-[25px] z-10 left-[20px] absolute" onClick={handleBack}>
@@ -88,12 +86,15 @@ const StoryRow = () => {
           </div>
         )}
         {visibleStories.map((story) => (
-          <div key={story.id} className="story relative">
+          <div key={story.id} className="story relative" onClick={() => setOpen(true)}>
             <div className="story-circle">
               <img src={story.imgSrc} alt={`story ${story.id}`} />
             </div>
           </div>
         ))}
+        {/* {open && (
+          <StoryCarousel />
+        )} */}
         {currentIndex + visibleCount < otherStories.length && (
           <div className="next-button absolute right-[43px] top-[25px]" onClick={handleNext}>
             <div className="circle">
