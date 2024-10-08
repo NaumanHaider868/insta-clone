@@ -106,7 +106,7 @@ const Reel = ({ reel }) => {
     }, []);
 
     return (
-        <div className="relative h-screen flex pt-[10px] pb-[10px]">
+        <div className="relative h-screen flex pt-[10px] pb-[10px] reels-sec">
             <ReactPlayer
                 url={reel.videoUrl}
                 playing={playing}
@@ -116,7 +116,7 @@ const Reel = ({ reel }) => {
                 height="100%"
                 playsinline
                 onClick={handleVideoClick}
-                style={{ pointerEvents: "auto" }}
+                style={{ pointerEvents: "auto", zIndex: 1 }}
             />
 
             <button
@@ -126,7 +126,7 @@ const Reel = ({ reel }) => {
                 {muted ? <FaVolumeMute /> : <FaVolumeUp />}
             </button>
             <div className="flex items-end justify-between w-[350px] absolute bottom-0 px-[18px] pb-[20px]">
-                <div className="text-white">
+                <div className="text-white z-10">
                     <UserDetails
                         username={reel.username}
                         description={reel.description}
@@ -164,7 +164,7 @@ const VideoActions = ({ reel }) => {
     const handleLike = () => setLiked(!liked);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 z-10">
             <div className="flex flex-col items-center">
                 <button onClick={handleLike} className="focus:outline-none">
                     <FaHeart className={`w-8 h-8 ${liked ? "text-red-500" : "text-white"}`} />
