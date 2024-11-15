@@ -39,7 +39,7 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
         width: -webkit-fill-available;
         margin: 0px;
         flex-direction: row;
-        background: #1c1c1c !important;
+        // background: #1c1c1c !important;
 
         .flex.justify-between.items-center {
           width: 100%;
@@ -844,9 +844,9 @@ $gradient-border: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #
   }
 }
 
-.notification-drawer-w {
+.dark .notification-drawer-w {
   .css-eydqou-MuiPaper-root-MuiDrawer-paper {
-    background: #1C1C1C;
+    background: #1C1C1C !important;
   }
 }
 

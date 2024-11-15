@@ -195,7 +195,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
             anchor="right"
             open={isOpen}
             onClose={toggleDrawer(false)}
-            className="notification-drawer-w dark:notification-drawer-b"
+            className="notification-drawer-w"
           >
             <div className="text-black dark:text-white p-4 notification-sideDrawer mx-auto">
               <div className="flex items-center mb-4">
