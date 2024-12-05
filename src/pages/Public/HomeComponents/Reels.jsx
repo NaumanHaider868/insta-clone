@@ -9,7 +9,7 @@ import explore5 from "../../../assets/images/users-imgs/explore5.jpg";
 // Static import for video files
 import video1 from "../../../assets/images/video1.MP4";
 import video2 from "../../../assets/images/video2.MP4";
-import video3 from "../../../assets/images/video3.MP4";
+import video3 from "../../../assets/images/virat.MP4";
 
 const reelsData = [
     {
