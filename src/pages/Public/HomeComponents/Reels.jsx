@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { FaHeart, FaComment, FaShare, FaSave, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
 
-import video1 from "../../../assets/images/video1.MP4";
-import video2 from "../../../assets/images/video2.MP4";
-import video3 from "../../../assets/images/video3.MP4";
-// Import profile pictures with variable names matching file names
 import explore3 from "../../../assets/images/users-imgs/explore3.jpg";
 import explore4 from "../../../assets/images/users-imgs/explore4.jpg";
 import explore5 from "../../../assets/images/users-imgs/explore5.jpg";
 
+// Static import for video files
+import video1 from "../../../assets/images/video1.MP4";
+import video2 from "../../../assets/images/video2.MP4";
+import video3 from "../../../assets/images/video3.MP4";
 
 const reelsData = [
     {
@@ -117,7 +117,7 @@ const Reel = ({ reel }) => {
     return (
         <div className="relative h-screen flex pt-[10px] pb-[10px] reels-sec">
             <ReactPlayer
-                url={reel.videoUrl}
+                url={reel.videoUrl} // Directly passing the static URL here
                 playing={playing}
                 loop
                 muted={muted}
