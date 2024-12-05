@@ -44,7 +44,7 @@ function ExplorePage() {
             <input
               type="text"
               placeholder="Search"
-              className="ml-2 w-full bg-transparent outline-none text-gray-700 dark:text-white placeholder-gray-400"
+              className="ml-2 w-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
             />
           </div>
 

@@ -75,7 +75,7 @@ const UserProfile = () => {
 
     return (
         <div className="profile h-full">
-            <div className="flex items-center pt-4 pb-8">
+            <div className="flex items-center pt-4 pb-8 profile-div">
                 <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
                     <div className="flex flex-col items-center main-profile">
                         <div className="flex w-full gap-6 items-start p-6 user-profile">

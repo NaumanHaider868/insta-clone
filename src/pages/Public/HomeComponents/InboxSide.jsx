@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function InboxSide({
   users,
@@ -6,10 +6,18 @@ export default function InboxSide({
   selectedUser,
   setSelectedUser,
 }) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="w-[310px] p-4 inbox-side">
       <div className="flex items-center justify-between mb-4 inbox-head">
-        <h2 className="text-xl font-bold dark:text-white inbox-head-text">Messages</h2>
+        <h2 className="text-xl font-bold dark:text-white inbox-head-text">
+          Messages
+        </h2>
         <div className="inbox-head-icon">
           <i className="icon"></i>
         </div>
@@ -20,12 +28,14 @@ export default function InboxSide({
           type="text"
           placeholder="Search"
           className="w-full py-2 pl-10 pr-4 rounded-[40px] bg-white outline-none"
+          value={searchQuery} // Controlled input
+          onChange={(e) => setSearchQuery(e.target.value)} // Update search query
         />
         <i className="msg-search-icon absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400"></i>
       </div>
       <div className="h-[368px] overflow-auto overflow-x-hidden thin-scrollable pr-1 ">
         <div className="rounded-[20px]">
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <div
               key={user.id}
               className={`flex rounded-lg cursor-pointer ${selectedUser?.id === user?.id ? "user-bg-active dark:bg-[#00000073]" : ""
@@ -65,13 +75,15 @@ export default function InboxSide({
                     </div>
                     <i className="camera-icon"></i>
                   </div>
-                  {/* {user.id !== 4 && (
-                  <span className="w-[186px] absolute top-[54px] h-[0.5px] bg-[#9A9A9A]"></span>
-                )} */}
                 </div>
               </div>
             </div>
           ))}
+          {filteredUsers.length === 0 && (
+            <p className="text-center text-gray-500 dark:text-white">
+              No users found
+            </p>
+          )}
         </div>
       </div>
     </div>

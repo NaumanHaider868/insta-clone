@@ -4,6 +4,11 @@ import post1 from "../../../assets/images/users-imgs/user7.png";
 import mainUser from "../../../assets/images/users-imgs/user7.png";
 import StoryRow from "./Story";
 import Suggestions from "./Suggestions";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import { Keyboard, Pagination, Navigation } from "swiper/modules";
 
 const Post = () => {
   const postData = [
@@ -15,7 +20,7 @@ const Post = () => {
         postedTime: "57 minutes ago",
       },
       content: {
-        image: post,
+        images: [post, post1], // Multiple images for this post
         text: "Вчера с друзьями мы затронули серьёзную тему...",
         likes: 32800,
         comments: 1988,
@@ -36,7 +41,7 @@ const Post = () => {
         postedTime: "57 minutes ago",
       },
       content: {
-        image: post1,
+        images: [post1], // Only one image for this post
         text: "Вчера с друзьями мы затронули серьёзную тему...",
         likes: 32800,
         comments: 1988,
@@ -66,25 +71,35 @@ const Post = () => {
                     <div className="bg-[#EFEFEF] rounded-[25px] dark:bg-[#ffffff1c] post">
                       <div className="rounded-3xl flex overflow-hidden max-w-[57rem] p-[14px] dark:text-white">
                         <div className="w-[56%] relative post-content">
-                          <img
-                            src={post.content.image}
-                            alt="Post"
-                            className="object-contain w-full h-full rounded-[30px]"
-                          />
-                          <div className="post-more">
-                            <i className="post-more-icon"></i>
-                          </div>
-                          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 cursor-pointer w-[40px] h-[40px] rounded-full bg-[#D1D2D0] flex items-center justify-center">
-                            <button className="arrow-left-white">
-                            </button>
-                          </div>
-                          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer w-[40px] h-[40px] rounded-full bg-[#D1D2D0] flex items-center justify-center">
-                            <button className="arrow-right-white">
-                            </button>
-                          </div>
+                          {post.content.images.length > 1 ? (
+                            <Swiper
+                              modules={[Keyboard, Pagination, Navigation]}
+                              navigation
+                              pagination={{ clickable: true }}
+                              keyboard={{ enabled: true }}
+                              className="w-full h-full"
+                            >
+                              {post.content.images.map((image, index) => (
+                                <SwiperSlide key={index}>
+                                  <img
+                                    src={image}
+                                    alt={`Post Slide ${index + 1}`}
+                                    className="object-contain w-full h-full rounded-[30px]"
+                                  />
+                                </SwiperSlide>
+                              ))}
+                            </Swiper>
+                          ) : (
+                            <img
+                              src={post.content.images[0]}
+                              alt="Post"
+                              className="object-contain w-full h-full rounded-[30px]"
+                            />
+                          )}
                         </div>
 
                         <div className="w-[44%] p-5 pr-0 post-detail">
+                          {/* Post Details */}
                           <div className="flex items-center mb-4">
                             <div className="avatar-post-div w-10 h-10 rounded-full mr-3">
                               <img
