@@ -1,33 +1,42 @@
 import React from "react";
 import "../../../assets/css/style.scss";
 
+// Import images with variable names matching file names
+import user7 from "../../../assets/images/users-imgs/user7.png";
+import user16 from "../../../assets/images/users-imgs/user16.jpeg";
+import user17 from "../../../assets/images/users-imgs/user17.jpeg";
+import user18 from "../../../assets/images/users-imgs/user18.jpeg";
+import user5 from "../../../assets/images/users-imgs/user5.png";
+
+// Suggestions array
 const suggestions = [
   {
     id: 1,
     username: "zark-mosally",
-    imgSrc: "/src/assets/images/users-imgs/user7.png",
+    imgSrc: user7,
   },
   {
     id: 2,
     username: "haider_ali",
-    imgSrc: "/src/assets/images/users-imgs/user16.jpeg",
+    imgSrc: user16,
   },
   {
     id: 3,
     username: "naumanh",
-    imgSrc: "/src/assets/images/users-imgs/user17.jpeg",
+    imgSrc: user17,
   },
   {
     id: 4,
     username: "mosa",
-    imgSrc: "/src/assets/images/users-imgs/user18.jpeg",
+    imgSrc: user18,
   },
   {
     id: 5,
     username: "aliya_nadeem",
-    imgSrc: "/src/assets/images/users-imgs/user5.png",
+    imgSrc: user5,
   },
 ];
+
 
 const Suggestions = () => {
   return (

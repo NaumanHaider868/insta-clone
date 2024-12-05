@@ -2,33 +2,42 @@ import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { FaHeart, FaComment, FaShare, FaSave, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
 
+import video1 from "../../../assets/images/video1.MP4";
+import video2 from "../../../assets/images/video2.MP4";
+import video3 from "../../../assets/images/video3.MP4";
+// Import profile pictures with variable names matching file names
+import explore3 from "../../../assets/images/users-imgs/explore3.jpg";
+import explore4 from "../../../assets/images/users-imgs/explore4.jpg";
+import explore5 from "../../../assets/images/users-imgs/explore5.jpg";
+
+
 const reelsData = [
     {
         id: 1,
-        videoUrl: "/src/assets/images/video1.MP4",
+        videoUrl: video1,
         username: "confident_coder",
         likes: 4121,
         comments: 32,
         description: "Ramdan mubarak.",
-        profilePic: "/src/assets/images/users-imgs/explore3.jpg",
+        profilePic: explore3,
     },
     {
         id: 2,
-        videoUrl: "/src/assets/images/video2.MP4",
+        videoUrl: video2,
         username: "coding_ninja",
         likes: 2450,
         comments: 15,
         description: "Bhai party!",
-        profilePic: "/src/assets/images/users-imgs/explore4.jpg",
+        profilePic: explore4,
     },
     {
         id: 3,
-        videoUrl: "/src/assets/images/video3.MP4",
+        videoUrl: video3,
         username: "web_dev",
         likes: 6789,
         comments: 45,
         description: "Muje tu kuch pata hi nahi.",
-        profilePic: "/src/assets/images/users-imgs/explore5.jpg",
+        profilePic: explore5,
     },
 ];
 

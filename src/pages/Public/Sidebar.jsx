@@ -19,7 +19,13 @@ import { Drawer } from "@mui/material";
 import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut } from 'react-icons/fi';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-
+import user19 from "../../assets/images/users-imgs/user19.jpeg";
+import user12 from "../../assets/images/users-imgs/user12.jpeg";
+import user14 from "../../assets/images/users-imgs/user14.jpeg";
+import user5 from "../../assets/images/users-imgs/user5.jpeg";
+import user13 from "../../assets/images/users-imgs/user13.jpeg";
+import user10 from "../../assets/images/users-imgs/user10.jpeg";
+import user11 from "../../assets/images/users-imgs/user11.jpeg";
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -28,26 +34,26 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     {
       id: 1,
       time: "Today",
-      profileImage: "/src/assets/images/users-imgs/user19.jpeg",
-      user: 'shinkiro96',
+      profileImage: user19,
+      user: "shinkiro96",
       message: "haroonhpanezai, and 9 others liked your comment: Rich army of poor country",
       timeAgo: "8h",
-      postImage: "/src/assets/images/users-imgs/user10.jpeg",
+      postImage: user10,
     },
     {
       id: 2,
       time: "This week",
-      profileImage: "/src/assets/images/users-imgs/user12.jpeg",
-      user: '_im_abdurrehman67',
+      profileImage: user12,
+      user: "_im_abdurrehman67",
       message: "and nomi_43e3 liked your story.",
       timeAgo: "1d",
-      postImage: "/src/assets/images/users-imgs/user11.jpeg",
+      postImage: user11,
     },
     {
       id: 3,
       time: "This week",
-      profileImage: "/src/assets/images/users-imgs/user14.jpeg",
-      user: 'irfanbarkati4',
+      profileImage: user14,
+      user: "irfanbarkati4",
       message: "started following you.",
       timeAgo: "2d",
       action: "Follow",
@@ -55,8 +61,8 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     {
       id: 4,
       time: "This month",
-      profileImage: "/src/assets/images/users-imgs/user5.jpeg",
-      user: 'ramzanabibi1',
+      profileImage: user5,
+      user: "ramzanabibi1",
       message: "who you might know, is on Instagram.",
       timeAgo: "1w",
       action: "Follow",
@@ -64,13 +70,12 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     {
       id: 5,
       time: "This month",
-      profileImage: "/src/assets/images/users-imgs/user13.jpeg",
-      user: '365codingdays',
+      profileImage: user13,
+      user: "365codingdays",
       message: "liked your comment: What should learn for backend 'python' or 'express Js'.",
       timeAgo: "1w",
     },
   ];
-
   const toggleDrawer = (open) => (event) => {
     if (
       event.type === 'keydown' &&

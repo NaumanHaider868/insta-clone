@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import user1 from '../../../assets/images/users-imgs/user6.jpg';
+import explore1 from '../../../assets/images/users-imgs/explore1.jpg';
+import explore2 from '../../../assets/images/users-imgs/explore2.jpg';
+import explore3 from '../../../assets/images/users-imgs/explore3.jpg';
+import explore4 from '../../../assets/images/users-imgs/explore4.jpg';
+import explore7 from '../../../assets/images/users-imgs/explore7.jpg';
 
 const data = {
     'Posts': [
-        { id: 1, src: '/src/assets/images/users-imgs/explore1.jpg', likes: '15k', comments: '2k', isReel: false, isMultiple: false },
-        { id: 2, src: '/src/assets/images/users-imgs/explore2.jpg', likes: '5k', comments: '1k', isReel: false, isMultiple: true },
-        { id: 3, src: '/src/assets/images/users-imgs/explore3.jpg', likes: '20k', comments: '3k', isReel: true, isMultiple: false },
-        { id: 4, src: '/src/assets/images/users-imgs/explore4.jpg', likes: '12k', comments: '1k', isReel: false, isMultiple: false },
+        { id: 1, src: explore1, likes: '15k', comments: '2k', isReel: false, isMultiple: false },
+        { id: 2, src: explore2, likes: '5k', comments: '1k', isReel: false, isMultiple: true },
+        { id: 3, src: explore3, likes: '20k', comments: '3k', isReel: true, isMultiple: false },
+        { id: 4, src: explore4, likes: '12k', comments: '1k', isReel: false, isMultiple: false },
     ],
     'Reels': [
-        { id: 3, src: '/src/assets/images/users-imgs/explore3.jpg', likes: '20k', comments: '3k', isReel: true, isMultiple: false },
-        { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
+        { id: 3, src: explore3, likes: '20k', comments: '3k', isReel: true, isMultiple: false },
+        { id: 7, src: explore7, likes: '4k', comments: '600', isReel: true, isMultiple: false },
     ],
 };
 

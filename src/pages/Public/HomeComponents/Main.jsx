@@ -86,6 +86,9 @@ const Post = () => {
                                     alt={`Post Slide ${index + 1}`}
                                     className="object-contain w-full h-full rounded-[30px]"
                                   />
+                                  <div className="post-more">
+                                    <i className="post-more-icon"></i>
+                                  </div>
                                 </SwiperSlide>
                               ))}
                             </Swiper>

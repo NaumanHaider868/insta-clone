@@ -1,37 +1,44 @@
 import React, { useState } from "react";
-
+// Import images with variable names matching file names
+import explore1 from "../../../assets/images/users-imgs/explore1.jpg";
+import explore2 from "../../../assets/images/users-imgs/explore2.jpg";
+import explore3 from "../../../assets/images/users-imgs/explore3.jpg";
+import explore4 from "../../../assets/images/users-imgs/explore4.jpg";
+import explore6 from "../../../assets/images/users-imgs/explore6.jpg";
+import explore7 from "../../../assets/images/users-imgs/explore7.jpg";
+import explore8 from "../../../assets/images/users-imgs/explore8.jpg";
+import user13 from "../../../assets/images/users-imgs/user13.jpg";
 function ExplorePage() {
   const [activeTab, setActiveTab] = useState('For you');
+
 
   // Fake data for different tabs
   const data = {
     'For you': [
-      { id: 1, src: '/src/assets/images/users-imgs/explore1.jpg', likes: '15k', comments: '2k', isReel: false, isMultiple: false },
-      { id: 2, src: '/src/assets/images/users-imgs/explore2.jpg', likes: '5k', comments: '1k', isReel: false, isMultiple: true },
-      { id: 3, src: '/src/assets/images/users-imgs/explore3.jpg', likes: '20k', comments: '3k', isReel: true, isMultiple: false },
-      { id: 4, src: '/src/assets/images/users-imgs/explore4.jpg', likes: '12k', comments: '1k', isReel: false, isMultiple: false },
-      // { id: 5, src: '/src/assets/images/users-imgs/explore5.jpg', likes: '30k', comments: '5k', isReel: false, isMultiple: false },
-      { id: 6, src: '/src/assets/images/users-imgs/explore6.jpg', likes: '8k', comments: '900', isReel: false, isMultiple: false },
-      { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
-      { id: 8, src: '/src/assets/images/users-imgs/explore8.jpg', likes: '25k', comments: '4k', isReel: false, isMultiple: false },
-      { id: 9, src: '/src/assets/images/users-imgs/user13.jpg', likes: '18k', comments: '2.5k', isReel: false, isMultiple: false }
+      { id: 1, src: explore1, likes: '15k', comments: '2k', isReel: false, isMultiple: false },
+      { id: 2, src: explore2, likes: '5k', comments: '1k', isReel: false, isMultiple: true },
+      { id: 3, src: explore3, likes: '20k', comments: '3k', isReel: true, isMultiple: false },
+      { id: 4, src: explore4, likes: '12k', comments: '1k', isReel: false, isMultiple: false },
+      { id: 6, src: explore6, likes: '8k', comments: '900', isReel: false, isMultiple: false },
+      { id: 7, src: explore7, likes: '4k', comments: '600', isReel: true, isMultiple: false },
+      { id: 8, src: explore8, likes: '25k', comments: '4k', isReel: false, isMultiple: false },
+      { id: 9, src: user13, likes: '18k', comments: '2.5k', isReel: false, isMultiple: false }
     ],
     'Trending': [
-      // { id: 5, src: '/src/assets/images/users-imgs/explore5.jpg', likes: '30k', comments: '5k', isReel: false, isMultiple: false },
-      { id: 6, src: '/src/assets/images/users-imgs/explore6.jpg', likes: '8k', comments: '900', isReel: false, isMultiple: false },
-      { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
+      { id: 6, src: explore6, likes: '8k', comments: '900', isReel: false, isMultiple: false },
+      { id: 7, src: explore7, likes: '4k', comments: '600', isReel: true, isMultiple: false },
     ],
     'Top': [
-      { id: 8, src: '/src/assets/images/users-imgs/explore8.jpg', likes: '25k', comments: '4k', isReel: false, isMultiple: false },
-      { id: 9, src: '/src/assets/images/users-imgs/user13.jpg', likes: '18k', comments: '2.5k', isReel: false, isMultiple: false },
+      { id: 8, src: explore8, likes: '25k', comments: '4k', isReel: false, isMultiple: false },
+      { id: 9, src: user13, likes: '18k', comments: '2.5k', isReel: false, isMultiple: false },
     ],
     'Recent': [
-      { id: 1, src: '/src/assets/images/users-imgs/explore1.jpg', likes: '15k', comments: '2k', isReel: false, isMultiple: false },
-      { id: 2, src: '/src/assets/images/users-imgs/explore2.jpg', likes: '5k', comments: '1k', isReel: false, isMultiple: false },
+      { id: 1, src: explore1, likes: '15k', comments: '2k', isReel: false, isMultiple: false },
+      { id: 2, src: explore2, likes: '5k', comments: '1k', isReel: false, isMultiple: false },
     ],
     'Reels': [
-      { id: 3, src: '/src/assets/images/users-imgs/explore3.jpg', likes: '20k', comments: '3k', isReel: true, isMultiple: false },
-      { id: 7, src: '/src/assets/images/users-imgs/explore7.jpg', likes: '4k', comments: '600', isReel: true, isMultiple: false },
+      { id: 3, src: explore3, likes: '20k', comments: '3k', isReel: true, isMultiple: false },
+      { id: 7, src: explore7, likes: '4k', comments: '600', isReel: true, isMultiple: false },
     ]
   };
 
