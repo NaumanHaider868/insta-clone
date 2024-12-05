@@ -1,26 +1,36 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import "../../../assets/css/style.scss";
-// import StoryCarousel from "./StoryCarousel";
 
+// Import images
+import user6 from "../../../assets/images/users-imgs/user6.jpg";
+import user19 from "../../../assets/images/users-imgs/user19.jpeg";
+import user10 from "../../../assets/images/users-imgs/user10.jpeg";
+import user12 from "../../../assets/images/users-imgs/user12.jpeg";
+import user11 from "../../../assets/images/users-imgs/user11.jpeg";
+import user14 from "../../../assets/images/users-imgs/user14.jpeg";
+import user5 from "../../../assets/images/users-imgs/user5.jpeg";
+import user13 from "../../../assets/images/users-imgs/user13.jpg";
+import user9 from "../../../assets/images/users-imgs/user9.jpeg";
+
+// Stories array
 const stories = [
-  { id: 1, imgSrc: "/src/assets/images/users-imgs/user6.jpg", isUser: true },
-  { id: 2, imgSrc: "/src/assets/images/users-imgs/user19.jpeg", isUser: false },
-  { id: 3, imgSrc: "/src/assets/images/users-imgs/user10.jpeg", isUser: false },
-  { id: 4, imgSrc: "/src/assets/images/users-imgs/user12.jpeg", isUser: false },
-  { id: 5, imgSrc: "/src/assets/images/users-imgs/user11.jpeg", isUser: false },
-  { id: 6, imgSrc: "/src/assets/images/users-imgs/user14.jpeg", isUser: false },
-  { id: 7, imgSrc: "/src/assets/images/users-imgs/user5.jpeg", isUser: false },
-  { id: 8, imgSrc: "/src/assets/images/users-imgs/user13.jpg", isUser: false },
-  { id: 9, imgSrc: "/src/assets/images/users-imgs/user9.jpeg", isUser: false },
-  { id: 10, imgSrc: "/src/assets/images/users-imgs/user9.jpeg", isUser: false },
-  { id: 11, imgSrc: "/src/assets/images/users-imgs/user11.jpeg", isUser: false },
-  { id: 12, imgSrc: "/src/assets/images/users-imgs/user14.jpeg", isUser: false },
-  { id: 13, imgSrc: "/src/assets/images/users-imgs/user5.jpeg", isUser: false },
-  { id: 14, imgSrc: "/src/assets/images/users-imgs/user13.jpg", isUser: false },
-  { id: 15, imgSrc: "/src/assets/images/users-imgs/user9.jpeg", isUser: false },
-  { id: 16, imgSrc: "/src/assets/images/users-imgs/user9.jpeg", isUser: false },
+  { id: 1, imgSrc: user6, isUser: true },
+  { id: 2, imgSrc: user19, isUser: false },
+  { id: 3, imgSrc: user10, isUser: false },
+  { id: 4, imgSrc: user12, isUser: false },
+  { id: 5, imgSrc: user11, isUser: false },
+  { id: 6, imgSrc: user14, isUser: false },
+  { id: 7, imgSrc: user5, isUser: false },
+  { id: 8, imgSrc: user13, isUser: false },
+  { id: 9, imgSrc: user9, isUser: false },
+  { id: 10, imgSrc: user9, isUser: false },
+  { id: 11, imgSrc: user11, isUser: false },
+  { id: 12, imgSrc: user14, isUser: false },
+  { id: 13, imgSrc: user5, isUser: false },
+  { id: 14, imgSrc: user13, isUser: false },
+  { id: 15, imgSrc: user9, isUser: false },
+  { id: 16, imgSrc: user9, isUser: false },
 ];
-
 const userStory = stories.find((story) => story.isUser);
 const otherStories = stories.filter((story) => !story.isUser);
 
