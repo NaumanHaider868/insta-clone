@@ -1,6 +1,18 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import "../../assets/css/style.scss"
+import { Drawer } from "@mui/material";
+import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut } from 'react-icons/fi';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import user19 from "../../assets/images/users-imgs/user19.jpeg";
+import user12 from "../../assets/images/users-imgs/user12.jpeg";
+import user14 from "../../assets/images/users-imgs/user14.jpeg";
+import user5 from "../../assets/images/users-imgs/user5.jpeg";
+import user13 from "../../assets/images/users-imgs/user13.jpeg";
+import user10 from "../../assets/images/users-imgs/user10.jpeg";
+import user11 from "../../assets/images/users-imgs/user11.jpeg";
 import SearchIconDefault from "../../assets/images/action-icons/search-default.svg";
 import SearchIcon from "../../assets/images/action-icons/search.svg";
 import HomeIcon from "../../assets/images/action-icons/home.svg";
@@ -15,17 +27,6 @@ import MsgIcon from "../../assets/images/action-icons/msg.svg";
 import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
-import { Drawer } from "@mui/material";
-import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut } from 'react-icons/fi';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import user19 from "../../assets/images/users-imgs/user19.jpeg";
-import user12 from "../../assets/images/users-imgs/user12.jpeg";
-import user14 from "../../assets/images/users-imgs/user14.jpeg";
-import user5 from "../../assets/images/users-imgs/user5.jpeg";
-import user13 from "../../assets/images/users-imgs/user13.jpeg";
-import user10 from "../../assets/images/users-imgs/user10.jpeg";
-import user11 from "../../assets/images/users-imgs/user11.jpeg";
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
