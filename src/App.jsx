@@ -5,6 +5,8 @@ import MainLayout from "./pages/MainLayout";
 import Messages from "./pages/Public/HomeComponents/Messages";
 import UserProfile from "./pages/Public/HomeComponents/UserProfile";
 import ReelsPage from "./pages/Public/HomeComponents/Reels";
+import Login from "./pages/Public/Auth/Login";
+import RequireAuth from "./components/RequireAuth";
 import { useEffect, useState } from "react";
 
 function App() {
@@ -46,7 +48,15 @@ function App() {
     //   </div>
     // </div>
     <Routes>
-      <Route path="/" element={<MainLayout isMobile={isMobile} setIsMobile={setIsMobile} />}>
+      <Route path="/auth/login" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <MainLayout isMobile={isMobile} setIsMobile={setIsMobile} />
+          </RequireAuth>
+        }
+      >
         <Route path="/" element={<Main />} />
         <Route path="explore" element={<ExplorePage />} />
         <Route path="inbox" element={<Messages isMobile={isMobile} setIsMobile={setIsMobile} />} />
