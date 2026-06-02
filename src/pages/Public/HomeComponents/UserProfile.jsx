@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import user1 from '../../../assets/images/users-imgs/user6.jpg';
+import noUser from '../../../assets/images/no-user.png';
 import explore1 from '../../../assets/images/users-imgs/explore1.jpg';
 import explore2 from '../../../assets/images/users-imgs/explore2.jpg';
 import explore3 from '../../../assets/images/users-imgs/explore3.jpg';
 import explore4 from '../../../assets/images/users-imgs/explore4.jpg';
 import explore7 from '../../../assets/images/users-imgs/explore7.jpg';
+import api from '../../../utils/api';
 
 const data = {
     'Posts': [
@@ -20,6 +22,7 @@ const data = {
 };
 
 const UserProfile = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
     const [activeTab, setActiveTab] = useState('Posts');
 
     const filteredData = activeTab === 'Reels'
@@ -78,6 +81,19 @@ const UserProfile = () => {
         }
     ];
 
+    // useEffect(() => {
+    //     async function fetchUserData() {
+    //         try {
+    //             const response = await api.get(`/user/profile/${user.id}`);
+    //             console.log('User Data:', response.data);
+    //         } catch (error) {
+    //             console.error('Error fetching user data:', error);
+
+    //         }
+    //     }
+    //     fetchUserData();
+    // }, [])
+
     return (
         <div className="profile h-full">
             <div className="flex items-center pt-4 pb-8 profile-div">
@@ -86,15 +102,15 @@ const UserProfile = () => {
                         <div className="flex w-full gap-6 items-start p-6 user-profile">
                             <div className="w-[195px] rounded-full overflow-hidden mb-4 bg-story user-profile-img">
                                 <img
-                                    src={user1}
+                                    src={noUser}
                                     alt="Profile"
                                     className="w-full h-full object-cover cursor-pointer p-[2px] rounded-[50%]"
                                 />
                             </div>
 
                             <div className="flex flex-col user-profile-deatil">
-                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Nauman Haider</h1>
-                                <p className="text-sm text-gray-500 dark:text-white mt-[5px] mb-[5px]">@naumanh</p>
+                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</h1>
+                                <p className="text-sm text-gray-500 dark:text-white mt-[5px] mb-[5px]">@{user.userName}</p>
 
                                 <div className="flex space-x-4 mt-[10px] mb-[10px]">
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">

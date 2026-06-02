@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import "../../assets/css/style.scss"
 import { Drawer } from "@mui/material";
@@ -29,6 +29,7 @@ import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg"
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const notifications = [
@@ -96,6 +97,12 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/")
+  }
 
   return (
     <div className="sidebar-container fixed left-[65px] top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex justify-center items-center h-screen">
@@ -190,7 +197,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
                 </MenuItem>
                 <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
                   <FiLogOut className="text-gray-500 dark:!text-white" />
-                  <span className="dark:!text-white">Log out</span>
+                  <span className="dark:!text-white" onClick={() => handleOut()}>Log out</span>
                 </MenuItem>
               </Menu>
             </button>

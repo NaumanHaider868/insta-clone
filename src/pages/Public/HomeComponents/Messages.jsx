@@ -34,7 +34,6 @@ const MessagePage = ({ isMobile, setIsMobile }) => {
         }
 
       } catch (err) {
-        console.log(err);
         setError(err.message);
       } finally {
         setLoading(false);
