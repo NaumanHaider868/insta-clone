@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import "../../assets/css/style.scss"
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import "../../assets/css/style.scss";
 import { Drawer } from "@mui/material";
 import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut } from 'react-icons/fi';
 import Menu from '@mui/material/Menu';
@@ -27,8 +26,11 @@ import MsgIcon from "../../assets/images/action-icons/msg.svg";
 import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
+import { clearSession } from "../../services/api";
+
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const notifications = [
@@ -95,6 +97,12 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    window.dispatchEvent(new Event('storage'));
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -188,7 +196,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
                   <FiUser className="text-gray-500 dark:!text-white" />
                   <span className="dark:!text-white">Switch accounts</span>
                 </MenuItem>
-                <MenuItem onClick={handleClose} className="flex items-center space-x-2 p-3">
+                <MenuItem onClick={handleLogout} className="flex items-center space-x-2 p-3">
                   <FiLogOut className="text-gray-500 dark:!text-white" />
                   <span className="dark:!text-white">Log out</span>
                 </MenuItem>

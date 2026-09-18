@@ -5,26 +5,10 @@ import Sidebar from "./Public/Sidebar";
 
 function MainLayout({ isMobile, setIsMobile }) {
   const location = useLocation();
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const savedMode = localStorage.getItem('dark-mode');
-    if (savedMode === 'true') {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark-mode') !== 'false');
 
   useEffect(() => {
     localStorage.setItem('dark-mode', darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {

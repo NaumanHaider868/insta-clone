@@ -1,140 +1,108 @@
-// import React from "react";
-// import screenshot4 from "../../../assets/images/auth-img/screenshot4-2x.png";
-// import screenshot3 from "../../../assets/images/auth-img/screenshot3-2x.png";
-// import "../../../assets/css/auth.css";
-// export default function Login() {
-//   return (
-//     <section className="h-screen w-full">
-//       <div className="mt-8 flex items-center">
-//         <div className="login-side-img bg-no-repeat w-[50%] h-screen bg-contain">
-//           <img
-//             src={screenshot3}
-//             className="screenshotx2 absolute h-[524.84px]"
-//           />
-//         </div>
-//         <div className="w-full md:w-1/2 px-8 py-10">
-//           <div className="bg-white border border-gray-300 p-8 text-center rounded-md">
-//             {/* Instagram Logo */}
-//             <div className="mb-6">
-//               <i className="insta-logo bg-no-repeat w-full h-16 block mx-auto"></i>
-//             </div>
+import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import InstaW from "../../../assets/images/insta-white.svg";
+import { loginUser } from "../../../services/api";
 
-//             {/* Form */}
-//             <div className="flex flex-col items-center gap-4">
-//               <input
-//                 type="text"
-//                 placeholder="Phone number, username, or email"
-//                 className="border border-gray-300 bg-gray-100 text-xs text-gray-500 w-[268px] h-[38px] px-3 focus:outline-none focus:border-gray-400"
-//               />
-//               <input
-//                 type="password"
-//                 placeholder="Password"
-//                 className="border border-gray-300 bg-gray-100 text-xs text-gray-500 w-[268px] h-[38px] px-3 focus:outline-none focus:border-gray-400"
-//               />
-//               <button className="w-[268px] bg-blue-500 text-white text-sm py-2 rounded focus:outline-none hover:bg-blue-600">
-//                 Log in
-//               </button>
-//             </div>
+function Login() {
+  const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-//             {/* Divider */}
-//             <div className="flex items-center my-4">
-//               <hr className="border-gray-300 w-full" />
-//               <span className="px-2 text-xs text-gray-500">OR</span>
-//               <hr className="border-gray-300 w-full" />
-//             </div>
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
 
-//             {/* Forgot password & Social login */}
-//             <div className="text-blue-800 text-sm font-semibold mb-4">
-//               <button className="hover:underline">Log in with Facebook</button>
-//             </div>
-//             <div className="text-xs text-gray-500 mb-6 hover:underline">
-//               Forgot password?
-//             </div>
-//           </div>
+    if (!identifier.trim()) {
+      setError("Enter your email address.");
+      return;
+    }
 
-//           {/* Sign up prompt */}
-//           <div className="bg-white border border-gray-300 p-4 mt-4 text-center rounded-md">
-//             <p className="text-sm">
-//               Don't have an account?{" "}
-//               <span className="text-blue-500 font-semibold hover:underline">
-//                 Sign up
-//               </span>
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
+    if (!password) {
+      setError("Enter your password.");
+      return;
+    }
 
-import React from "react";
-import screenshot4 from "../../../assets/images/auth-img/screenshot4-2x.png";
-import screenshot3 from "../../../assets/images/auth-img/screenshot3-2x.png";
-import "../../../assets/css/auth.css"; // Keep your custom styles if needed
+    try {
+      setIsLoading(true);
+      await loginUser({ email: identifier.trim(), password });
+      navigate("/", { replace: true });
+    } catch (loginError) {
+      setError(loginError.message || "Could not log in. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-export default function Login() {
   return (
-    <section className="h-screen w-full flex justify-center items-center">
-      <div className="flex items-center justify-center w-full max-w-6xl">
-        {/* Left side: Image Preview */}
-        <div className="relative hidden md:flex w-1/2 h-full items-center justify-center">
-          <img
-            src={screenshot3}
-            className="absolute object-contain h-[524.84px] w-auto"
-            alt="Instagram screenshot"
-          />
-        </div>
-        <div className="w-full md:w-1/2 px-8 py-10">
-          <div className="bg-white border border-gray-300 p-8 text-center rounded-md">
-            {/* Instagram Logo */}
-            <div className="mb-6">
-              <i className="insta-logo bg-no-repeat w-full h-16 block mx-auto"></i>
-            </div>
-
-            {/* Form */}
-            <div className="flex flex-col items-center gap-4">
-              <input
-                type="text"
-                placeholder="Phone number, username, or email"
-                className="border border-gray-300 bg-gray-100 text-xs text-gray-500 w-[268px] h-[38px] px-3 focus:outline-none focus:border-gray-400"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="border border-gray-300 bg-gray-100 text-xs text-gray-500 w-[268px] h-[38px] px-3 focus:outline-none focus:border-gray-400"
-              />
-              <button className="w-[268px] bg-blue-500 text-white text-sm py-2 rounded focus:outline-none hover:bg-blue-600">
-                Log in
+    <main className="min-h-screen bg-[#0b0b0b] px-4 py-8 text-[#f5f5f5] sm:py-12">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[430px] items-center justify-center">
+        <div className="w-full">
+          <section className="border-t-4 border-[#4c77e2] border-x border-b border-[#363636] bg-[#1c1c1c] px-6 py-9 text-center shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:px-10">
+            <img src={InstaW} alt="Instagram" className="mx-auto mb-4 h-auto w-[175px]" />
+            <p className="mb-8 text-sm text-[#a8a8a8]">Log in to continue to your account</p>
+            <form onSubmit={handleSubmit} noValidate className="space-y-2">
+              <div className="text-left">
+                <label htmlFor="login-identifier" className="sr-only">Email</label>
+                <input
+                  id="login-identifier"
+                  type="email"
+                  value={identifier}
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  placeholder="Email"
+                  autoComplete="email"
+                  className="h-10 w-full rounded-sm border border-[#363636] bg-[#262626] px-2.5 text-xs text-white outline-none transition placeholder:text-[#8e8e8e] focus:border-[#737373]"
+                />
+              </div>
+              <div className="relative text-left">
+                <label htmlFor="login-password" className="sr-only">Password</label>
+                <input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  className="h-10 w-full rounded-sm border border-[#363636] bg-[#262626] px-2.5 pr-10 text-xs text-white outline-none transition placeholder:text-[#8e8e8e] focus:border-[#737373]"
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center text-xs text-[#a8a8a8]"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {error && <p role="alert" className="pt-1 text-left text-xs text-[#ff6b81]">{error}</p>}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="mt-2 h-9 w-full rounded-lg bg-[#4c77e2] text-sm font-semibold text-white transition hover:bg-[#3f68d2] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? "Logging in..." : "Log in"}
               </button>
-            </div>
+            </form>
 
-            {/* Divider */}
-            <div className="flex items-center my-4">
-              <hr className="border-gray-300 w-full" />
-              <span className="px-2 text-xs text-gray-500">OR</span>
-              <hr className="border-gray-300 w-full" />
+            <div className="my-5 flex items-center gap-4 text-xs font-semibold text-[#8e8e8e]">
+              <span className="h-px flex-1 bg-[#363636]" />
+              OR
+              <span className="h-px flex-1 bg-[#363636]" />
             </div>
+            <button type="button" className="text-xs font-semibold text-[#385185]">Log in with Facebook</button>
+            <button type="button" className="mt-5 block w-full text-xs text-[#9ec5ff]">Forgot password?</button>
+          </section>
 
-            {/* Forgot password & Social login */}
-            <div className="text-blue-800 text-sm font-semibold mb-4">
-              <button className="hover:underline">Log in with Facebook</button>
-            </div>
-            <div className="text-xs text-gray-500 mb-6 hover:underline">
-              Forgot password?
-            </div>
-          </div>
-
-          {/* Sign up prompt */}
-          <div className="bg-white border border-gray-300 p-4 mt-4 text-center rounded-md">
-            <p className="text-sm">
-              Don't have an account?{" "}
-              <span className="text-blue-500 font-semibold hover:underline">
-                Sign up
-              </span>
-            </p>
-          </div>
+          <section className="mt-3 border border-[#363636] bg-[#1c1c1c] p-5 text-center text-sm text-[#f5f5f5]">
+            Don&apos;t have an account? <Link to="/register" className="font-semibold text-[#7ea7ff] hover:underline">Sign up</Link>
+          </section>
         </div>
       </div>
-    </section>
+    </main>
   );
 }
+
+export default Login;
