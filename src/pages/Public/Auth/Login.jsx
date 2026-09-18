@@ -73,6 +73,7 @@ import screenshot3 from "../../../assets/images/auth-img/screenshot3-2x.png";
 import "../../../assets/css/auth.css"; // Keep your custom styles if needed
 
 export default function Login() {
+  console.log("a")
   return (
     <section className="h-screen w-full flex justify-center items-center">
       <div className="flex items-center justify-center w-full max-w-6xl">
