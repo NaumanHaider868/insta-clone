@@ -1,122 +1,171 @@
-import React, { useEffect, useState } from "react";
-import user1 from "../../../assets/images/users-imgs/user18.jpeg";
-import user2 from "../../../assets/images/users-imgs/user12.jpeg";
-import user3 from "../../../assets/images/users-imgs/user17.jpeg";
-import user4 from "../../../assets/images/users-imgs/user13.jpeg";
-import user from "../../../assets/images/users-imgs/user6.jpg";
+import React, { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
+import { fetchChatConversations, getStoredSession, searchChatUsers } from "../../../services/api";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
 
-const MessagePage = ({ isMobile, setIsMobile }) => {
-  const [users] = useState([
-    {
-      id: 1,
-      name: "Eman",
-      image: user4,
-      senderImg: user,
-      lastMessage: "2 new messages",
-      status: "new",
-      chats: [
-        { sender: "me", text: "Hey Eman, how are you?", timestamp: "10:01 AM" },
-        {
-          sender: "Eman",
-          text: "I'm good! What about you?",
-          timestamp: "10:02 AM",
-        },
-        { sender: "me", text: "Doing well, thanks!", timestamp: "10:05 AM" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Zain",
-      senderImg: user,
-      image: user2,
-      lastMessage: "Sent 1m ago",
-      status: "sent",
-      chats: [
-        {
-          sender: "me",
-          text: "Hey Zain, did you finish the project?",
-          timestamp: "9:00 AM",
-        },
-        {
-          sender: "Zain",
-          text: "Almost done, just need some final touches.",
-          timestamp: "9:05 AM",
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Noman Rashid",
-      senderImg: user,
-      image: user3,
-      lastMessage: "Sent 1m ago",
-      status: "online",
-      chats: [
-        {
-          sender: "me",
-          text: "Noman, are you free for a quick call?",
-          timestamp: "11:30 AM",
-        },
-        {
-          sender: "Noman",
-          text: "Sure, let's do it in 10 minutes.",
-          timestamp: "11:35 AM",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "Ali Haider",
-      senderImg: user,
-      image: user1,
-      lastMessage: "Seen",
-      status: "seen",
-      chats: [
-        {
-          sender: "me",
-          text: "Hey Ali, long time no see!",
-          timestamp: "8:45 AM",
-        },
-        {
-          sender: "Ali",
-          text: "Yeah, it's been a while. How's everything?",
-          timestamp: "8:50 AM",
-        },
-        { sender: "me", text: "All good here!", timestamp: "8:55 AM" },
-      ],
-    },
-  ]);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-  const [selectedUser, setSelectedUser] = useState();
-
-  const userInfo = (user) => {
-    setSelectedUser(user);
+const toInboxUser = (user, lastMessage = null, unreadCount = 0) => {
+  const name = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.userName || "User";
+  return {
+    ...user,
+    name,
+    image: user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`,
+    lastMessage: lastMessage?.content || "Start a conversation",
+    lastMessageAt: lastMessage?.createdAt || "",
+    unreadCount,
+    status: user.isOnline ? "online" : "offline",
   };
+};
 
-  const clearSelectedUser = () => {
-    setSelectedUser(null);
+const MessagePage = ({ isMobile }) => {
+  const { token, user: currentUser } = getStoredSession();
+  const currentUserId = currentUser?.id;
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [socket, setSocket] = useState(null);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const selectedUserRef = useRef(null);
+
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (!currentUserId || !token) {
+      setLoading(false);
+      setError("Sign in to use messages.");
+      return undefined;
+    }
+
+    let active = true;
+    const client = io(API_BASE_URL, { auth: { token }, withCredentials: true });
+    setSocket(client);
+
+    const updateConversation = (message, incoming) => {
+      const partnerId = message.senderId === currentUserId ? message.receiverId : message.senderId;
+      const partner = message.senderId === currentUserId ? message.receiver : message.sender;
+      const isOpen = selectedUserRef.current?.id === partnerId;
+
+      setUsers((currentUsers) => {
+        const existing = currentUsers.find((user) => user.id === partnerId);
+        const nextUser = toInboxUser(
+          { ...(existing || {}), ...(partner || {}), id: partnerId },
+          message,
+          incoming && !isOpen ? (existing?.unreadCount || 0) + 1 : isOpen ? 0 : existing?.unreadCount || 0
+        );
+        return [nextUser, ...currentUsers.filter((user) => user.id !== partnerId)]
+          .sort((left, right) => right.lastMessageAt.localeCompare(left.lastMessageAt));
+      });
+    };
+
+    const handleReceive = (message) => updateConversation(message, true);
+    const handleSent = (message) => updateConversation(message, false);
+    const handlePresence = ({ userId, isOnline, lastSeen }) => {
+      setUsers((currentUsers) => currentUsers.map((user) => user.id === userId
+        ? { ...user, status: isOnline ? "online" : "offline", isOnline, lastSeen }
+        : user));
+      setSelectedUser((current) => current?.id === userId
+        ? { ...current, status: isOnline ? "online" : "offline", isOnline, lastSeen }
+        : current);
+    };
+
+    client.on("connect", () => setSocketConnected(true));
+    client.on("disconnect", () => setSocketConnected(false));
+    client.on("message:receive", handleReceive);
+    client.on("message:sent", handleSent);
+    client.on("user:presence", handlePresence);
+
+    fetchChatConversations()
+      .then((conversations) => {
+        if (!active) return;
+        setUsers((conversations || []).map(({ user, lastMessage, unreadCount }) => toInboxUser(user, lastMessage, unreadCount)));
+        setError("");
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message || "Unable to load conversations.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+      client.off("message:receive", handleReceive);
+      client.off("message:sent", handleSent);
+      client.off("user:presence", handlePresence);
+      client.disconnect();
+      setSocket(null);
+    };
+  }, [currentUserId, token]);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const response = await searchChatUsers(query);
+        if (active) setSearchResults((response?.items || []).map((user) => toInboxUser(user)));
+      } catch {
+        if (active) setSearchResults([]);
+      } finally {
+        if (active) setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const clearSelectedUser = () => setSelectedUser(null);
+  const selectUser = (user) => {
+    setSelectedUser(user);
+    setUsers((currentUsers) => currentUsers.map((conversation) => conversation.id === user.id
+      ? { ...conversation, unreadCount: 0 }
+      : conversation));
   };
 
   return (
     <div className="inbox h-full">
-      <div className="inbox-content flex items-center pt-4 pb-8 h-full">
-        <div className={`bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full`}>
-          <div className={`${isMobile ? (selectedUser ? "hide-inbox" : "show-inbox") : ''}`}>
+      <div className="inbox-content flex h-full items-center pb-8 pt-4">
+        <div className="flex h-full w-full overflow-hidden rounded-3xl bg-[#EFEFEF] shadow-lg dark:bg-[#ffffff1c]">
+          <div className={isMobile ? (selectedUser ? "hide-inbox" : "show-inbox") : ""}>
             <InboxSide
               users={users}
-              userInfo={userInfo}
               selectedUser={selectedUser}
-              setSelectedUser={setSelectedUser}
+              setSelectedUser={selectUser}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              searchResults={searchResults}
+              searchLoading={searchLoading}
             />
           </div>
-          <div className={`flex-1 bg-[#EFEFEF] dark:bg-[#1C1C1C] p-4 flex w-full inbox-msg ${isMobile ? (selectedUser ? "show-chat" : "hide-chat") : ''}`}>
+          <div className={`flex w-full flex-1 bg-[#EFEFEF] p-4 dark:bg-[#1C1C1C] inbox-msg ${isMobile ? (selectedUser ? "show-chat" : "hide-chat") : ""}`}>
             <UserChat
               selectedUser={selectedUser}
-              setSelectedUser={setSelectedUser}
+              currentUser={currentUser}
+              socket={socket}
+              socketConnected={socketConnected}
+              setUsers={setUsers}
               clearSelectedUser={clearSelectedUser}
               isMobile={isMobile}
+              loading={loading}
+              error={error}
             />
           </div>
         </div>

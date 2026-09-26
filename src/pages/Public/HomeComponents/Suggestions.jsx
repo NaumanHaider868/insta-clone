@@ -1,44 +1,49 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../../../assets/css/style.scss";
-
-// Import images with variable names matching file names
-import user7 from "../../../assets/images/users-imgs/user7.png";
-import user16 from "../../../assets/images/users-imgs/user16.jpeg";
-import user17 from "../../../assets/images/users-imgs/user17.jpeg";
-import user18 from "../../../assets/images/users-imgs/user18.jpeg";
-import user5 from "../../../assets/images/users-imgs/user5.png";
-
-// Suggestions array
-const suggestions = [
-  {
-    id: 1,
-    username: "zark-mosally",
-    imgSrc: user7,
-  },
-  {
-    id: 2,
-    username: "haider_ali",
-    imgSrc: user16,
-  },
-  {
-    id: 3,
-    username: "naumanh",
-    imgSrc: user17,
-  },
-  {
-    id: 4,
-    username: "mosa",
-    imgSrc: user18,
-  },
-  {
-    id: 5,
-    username: "aliya_nadeem",
-    imgSrc: user5,
-  },
-];
-
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import { fetchSuggestions, followUser } from "../../../services/api";
 
 const Suggestions = () => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [followingId, setFollowingId] = useState(null);
+  const [toast, setToast] = useState({ open: false, severity: "success", message: "" });
+
+  const loadSuggestions = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchSuggestions();
+      setSuggestions(response?.items || []);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSuggestions();
+  }, []);
+
+  const handleFollow = async (userId) => {
+    if (followingId) return;
+    setFollowingId(userId);
+    try {
+      await followUser(userId);
+      setSuggestions((current) => current.filter((suggestion) => suggestion.id !== userId));
+      setToast({ open: true, severity: "success", message: "User followed successfully." });
+    } catch (followError) {
+      setToast({
+        open: true,
+        severity: "error",
+        message: followError.message || "Unable to follow this user.",
+      });
+    } finally {
+      setFollowingId(null);
+    }
+  };
+
   return (
     <>
       <div className="w-[250px] ml-7">
@@ -64,24 +69,37 @@ const Suggestions = () => {
             <a href="/see-all" className="dark:!text-white">See All</a>
           </div>
           <div className="suggestions-list">
+            {loading && <p className="px-3 py-4 text-sm text-gray-500">Loading suggestions...</p>}
+            {!loading && suggestions.length === 0 && <p className="px-3 py-4 text-sm text-gray-500">No suggestions right now.</p>}
             {suggestions.map((suggestion) => (
               <div key={suggestion.id} className="suggestion-item">
-                <img
-                  src={suggestion.imgSrc}
-                  alt={suggestion.username}
-                  className="suggestion-avatar"
-                />
+                <img src={suggestion.profileImage || "https://ui-avatars.com/api/?name=" + encodeURIComponent(suggestion.userName)} alt={suggestion.userName} className="suggestion-avatar" />
                 <span className="suggestion-username dark:!text-white">
-                  {suggestion.username}
+                  {suggestion.userName}
                 </span>
-                <a href="/follow" className="follow-link">
-                  Follow
-                </a>
+                <button type="button" className="follow-link" onClick={() => handleFollow(suggestion.id)} disabled={followingId === suggestion.id}>
+                  {followingId === suggestion.id ? "..." : "Follow"}
+                </button>
               </div>
             ))}
           </div>
         </div>
       </div>
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3500}
+        onClose={() => setToast((current) => ({ ...current, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setToast((current) => ({ ...current, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { FaHeart, FaComment, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
+import { FiShare2 } from "react-icons/fi";
 import {
   addReelComment,
   fetchReelComments,
   fetchReelsFeed,
   toggleLikeReel,
-  getStoredSession,
 } from "../../../services/api";
 
 const formatDate = (value) => {
@@ -21,6 +21,29 @@ const ReelsPage = () => {
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pageRef = useRef(1);
+  const loadingMoreRef = useRef(false);
+  const loadMoreReels = useCallback(async () => {
+    if (!hasNextPage || loadingMoreRef.current) return false;
+
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    try {
+      const response = await fetchReelsFeed(pageRef.current + 1);
+      const nextReels = response?.items || [];
+      setReels((currentReels) => [...currentReels, ...nextReels]);
+      pageRef.current = response?.pagination?.page || pageRef.current + 1;
+      setHasNextPage(Boolean(response?.pagination?.hasNextPage));
+      return nextReels.length > 0;
+    } catch {
+      return false;
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  }, [hasNextPage]);
 
   useEffect(() => {
     const loadReels = async () => {
@@ -28,6 +51,8 @@ const ReelsPage = () => {
         setLoading(true);
         const response = await fetchReelsFeed();
         setReels(response?.items || []);
+        pageRef.current = response?.pagination?.page || 1;
+        setHasNextPage(Boolean(response?.pagination?.hasNextPage));
         setError("");
       } catch (feedError) {
         setError(feedError.message || "Unable to load reels.");
@@ -39,15 +64,27 @@ const ReelsPage = () => {
     loadReels();
   }, []);
 
-  const nextReel = (direction) => {
+  const nextReel = useCallback(async (direction) => {
     if (reels.length === 0) return;
-    setCurrentReelIndex((prevIndex) => {
-      if (direction === "up") {
-        return prevIndex === 0 ? reels.length - 1 : prevIndex - 1;
-      }
-      return prevIndex === reels.length - 1 ? 0 : prevIndex + 1;
-    });
-  };
+
+    if (direction === "up") {
+      setCurrentReelIndex((index) => (index === 0 ? reels.length - 1 : index - 1));
+      return;
+    }
+
+    if (currentReelIndex < reels.length - 1) {
+      setCurrentReelIndex((index) => index + 1);
+      return;
+    }
+
+    if (hasNextPage) {
+      const nextIndex = reels.length;
+      if (await loadMoreReels()) setCurrentReelIndex(nextIndex);
+      return;
+    }
+
+    setCurrentReelIndex(0);
+  }, [currentReelIndex, hasNextPage, loadMoreReels, reels.length]);
 
   useEffect(() => {
     const handleScroll = (e) => {
@@ -70,7 +107,7 @@ const ReelsPage = () => {
       window.removeEventListener("wheel", handleScroll);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [reels.length]);
+  }, [nextReel]);
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center text-sm text-gray-500">Loading reels...</div>;
@@ -86,12 +123,13 @@ const ReelsPage = () => {
 
   return (
     <div className="h-screen overflow-hidden flex flex-col items-center justify-center scrollbar-hidden">
-      <Reel reel={reels[currentReelIndex]} onNext={nextReel} />
+      <Reel key={reels[currentReelIndex].id} reel={reels[currentReelIndex]} />
+      {loadingMore && <span className="sr-only">Loading more reels...</span>}
     </div>
   );
 };
 
-const Reel = ({ reel, onNext }) => {
+const Reel = ({ reel }) => {
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(true);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -100,21 +138,21 @@ const Reel = ({ reel, onNext }) => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [liked, setLiked] = useState(Boolean(reel.isLiked));
   const [likesCount, setLikesCount] = useState(reel.likesCount || 0);
+  const [commentsCount, setCommentsCount] = useState(reel.commentsCount || 0);
   const [likeLoading, setLikeLoading] = useState(false);
-  const { user } = getStoredSession();
-
-  const loadComments = async () => {
+  const [shareMessage, setShareMessage] = useState("");
+  const loadComments = useCallback(async () => {
     try {
       const response = await fetchReelComments(reel.id);
       setComments(response?.items || []);
     } catch {
       setComments([]);
     }
-  };
+  }, [reel.id]);
 
   useEffect(() => {
     if (commentOpen) loadComments();
-  }, [commentOpen, reel.id]);
+  }, [commentOpen, loadComments]);
 
   const handleLikeToggle = async () => {
     if (likeLoading) return;
@@ -123,7 +161,7 @@ const Reel = ({ reel, onNext }) => {
       const response = await toggleLikeReel(reel.id, liked);
       const nextLiked = Boolean(response?.liked ?? !liked);
       setLiked(nextLiked);
-      setLikesCount((current) => Math.max(0, current + (nextLiked ? 1 : -1) - (liked ? 1 : 0)));
+      setLikesCount((current) => Math.max(0, current + (nextLiked ? 1 : -1)));
     } catch {
       return;
     } finally {
@@ -138,6 +176,7 @@ const Reel = ({ reel, onNext }) => {
     try {
       const response = await addReelComment(reel.id, content);
       setComments((current) => [response, ...current]);
+      setCommentsCount((current) => current + 1);
       setCommentInput("");
     } catch {
       return;
@@ -148,6 +187,27 @@ const Reel = ({ reel, onNext }) => {
 
   const handleVideoClick = () => setPlaying((prev) => !prev);
   const toggleMute = () => setMuted((prev) => !prev);
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/reels`;
+    const shareData = {
+      title: "Instagram reel",
+      text: reel.caption || `Check out @${reel.user?.userName || "User"}'s reel`,
+      url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareMessage("Link copied");
+        window.setTimeout(() => setShareMessage(""), 1800);
+      }
+    } catch {
+      setShareMessage("");
+    }
+  };
 
   return (
     <div className="relative h-screen flex pt-[10px] pb-[10px] reels-sec">
@@ -180,9 +240,11 @@ const Reel = ({ reel, onNext }) => {
           <VideoActions
             liked={liked}
             likesCount={likesCount}
-            commentsCount={reel.commentsCount || comments.length}
+            commentsCount={commentsCount || comments.length}
             onLikeToggle={handleLikeToggle}
             onCommentToggle={() => setCommentOpen((prev) => !prev)}
+            onShare={handleShare}
+            shareMessage={shareMessage}
             isLoading={likeLoading}
           />
         </div>
@@ -240,7 +302,7 @@ const UserDetails = ({ username, description, profilePic, createdAt }) => {
   );
 };
 
-const VideoActions = ({ liked, likesCount, commentsCount, onLikeToggle, onCommentToggle, isLoading }) => {
+const VideoActions = ({ liked, likesCount, commentsCount, onLikeToggle, onCommentToggle, onShare, shareMessage, isLoading }) => {
   return (
     <div className="space-y-6 z-10">
       <div className="flex flex-col items-center">
@@ -255,6 +317,13 @@ const VideoActions = ({ liked, likesCount, commentsCount, onLikeToggle, onCommen
           <FaComment className="w-8 h-8 text-white" />
         </button>
         <p>{commentsCount}</p>
+      </div>
+
+      <div className="flex flex-col items-center">
+        <button onClick={onShare} aria-label="Share reel" title="Share reel" className="focus:outline-none">
+          <FiShare2 className="h-7 w-7 text-white" />
+        </button>
+        {shareMessage && <p className="text-[10px]">{shareMessage}</p>}
       </div>
     </div>
   );
