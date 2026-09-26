@@ -1,90 +1,80 @@
-import React, { useState } from "react";
+import React from "react";
+
+const InboxUserRow = ({ user, selected, onClick, showUnread = true }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`flex w-full rounded-xl text-left transition hover:bg-black/5 dark:hover:bg-white/5 ${selected ? "user-bg-active dark:bg-[#00000073]" : ""}`}
+  >
+    <div className="flex w-full items-center border-b p-[10px] dark:border-white/10">
+      <div className="relative h-[46px] w-[46px] shrink-0 rounded-full bg-story inbox-user-img">
+        <img className="h-full w-full rounded-full object-cover p-[2px]" src={user.image} alt="" />
+        {user.status === "online" && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-[#14D41C] dark:border-[#1c1c1c]" />}
+      </div>
+      <div className="ml-3 min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="truncate font-semibold dark:text-white">{user.name}</h4>
+          {showUnread && user.unreadCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white">{user.unreadCount}</span>}
+        </div>
+        <p className={`truncate text-xs ${user.unreadCount > 0 ? "font-bold text-blue-600" : "text-gray-500 dark:text-gray-300"}`}>
+          {user.lastMessage || "Start a conversation"}
+        </p>
+      </div>
+    </div>
+  </button>
+);
 
 export default function InboxSide({
   users,
-  userInfo,
   selectedUser,
   setSelectedUser,
+  searchQuery,
+  setSearchQuery,
+  searchResults,
+  searchLoading,
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(normalizedQuery));
+  const conversationIds = new Set(users.map((user) => user.id));
+  const newPeople = searchResults.filter((user) => !conversationIds.has(user.id));
 
   return (
     <div className="w-[310px] p-4 inbox-side">
-      <div className="flex items-center justify-between mb-4 inbox-head">
-        <h2 className="text-xl font-bold dark:text-white inbox-head-text">
-          Messages
-        </h2>
-        <div className="inbox-head-icon">
-          <i className="icon"></i>
-        </div>
+      <div className="inbox-head mb-4 flex items-center justify-between">
+        <h2 className="inbox-head-text text-xl font-bold dark:text-white">Messages</h2>
+        <div className="inbox-head-icon"><i className="icon" /></div>
       </div>
 
-      <div className="relative mb-4 inbox-find">
+      <div className="inbox-find relative mb-4">
         <input
-          type="text"
-          placeholder="Search"
-          className="w-full py-2 pl-10 pr-4 rounded-[40px] bg-white outline-none"
-          value={searchQuery} // Controlled input
-          onChange={(e) => setSearchQuery(e.target.value)} // Update search query
+          type="search"
+          placeholder="Search people or chats"
+          className="w-full rounded-[40px] bg-white py-2 pl-10 pr-4 outline-none dark:bg-[#111] dark:text-white"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
         />
-        <i className="msg-search-icon absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400"></i>
+        <i className="msg-search-icon absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
       </div>
-      <div className="h-[368px] overflow-auto overflow-x-hidden thin-scrollable pr-1 ">
-        <div className="rounded-[20px]">
+
+      <div className="thin-scrollable h-[368px] overflow-auto overflow-x-hidden pr-1">
+        {normalizedQuery.length >= 2 && (
+          <section className="mb-3">
+            <h3 className="px-2 py-2 text-xs font-semibold uppercase text-gray-500">Start a conversation</h3>
+            {searchLoading && <p className="px-2 py-2 text-sm text-gray-500">Searching...</p>}
+            {!searchLoading && newPeople.map((person) => (
+              <InboxUserRow key={`person-${person.id}`} user={person} selected={selectedUser?.id === person.id} showUnread={false} onClick={() => setSelectedUser(person)} />
+            ))}
+            {!searchLoading && newPeople.length === 0 && <p className="px-2 py-2 text-xs text-gray-500">No new people found.</p>}
+          </section>
+        )}
+
+        <section>
+          <h3 className="px-2 py-2 text-xs font-semibold uppercase text-gray-500">Your conversations</h3>
           {filteredUsers.map((user) => (
-            <div
-              key={user.id}
-              className={`flex rounded-lg cursor-pointer ${selectedUser?.id === user?.id ? "user-bg-active dark:bg-[#00000073]" : ""
-                } !rounded-xl`}
-              onClick={() => setSelectedUser(user)}
-            >
-              <div
-                className={`flex p-[10px] w-full ${user.id !== 4 ? "border-b dark:!border-none" : ""
-                  }`}
-              >
-                <div className="w-[57px] h-[46px] rounded-full bg-story relative inbox-user-img">
-                  <img
-                    className="w-full h-full rounded-full cursor-pointer p-[2px]"
-                    src={user.image}
-                    alt="Profile"
-                  />
-                  {user.status === "online" && (
-                    <span className="absolute w-[12px] h-[12px] rounded-full cursor-pointer bg-[#14D41C] bottom-[0px] right-[3px]"></span>
-                  )}
-                </div>
-                <div className="flex w-full flex-col relative inbox-user-detail">
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center">
-                      <div className="ml-2">
-                        <h4 className="font-semibold cursor-pointer dark:text-white">
-                          {user.name}
-                        </h4>
-                        <p
-                          className={`text-[12px] ${user.status === "new"
-                            ? "text-[#0095F6] font-bold"
-                            : "text-gray-400 dark:text-white"
-                            }`}
-                        >
-                          {user.lastMessage}
-                        </p>
-                      </div>
-                    </div>
-                    <i className="camera-icon"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <InboxUserRow key={user.id} user={user} selected={selectedUser?.id === user.id} onClick={() => setSelectedUser(user)} />
           ))}
-          {filteredUsers.length === 0 && (
-            <p className="text-center text-gray-500 dark:text-white">
-              No users found
-            </p>
-          )}
-        </div>
+          {filteredUsers.length === 0 && <p className="py-6 text-center text-sm text-gray-500 dark:text-white">{users.length ? "No matching chats" : "No conversations yet"}</p>}
+        </section>
       </div>
     </div>
   );

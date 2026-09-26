@@ -1,19 +1,41 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  FaHeart,
+  FaPlane,
+  FaPlaneDeparture,
+  FaRegComment,
+  FaRegHeart,
+  FaEllipsisV,
+  FaEdit,
+  FaTrashAlt,
+  FaVolumeMute,
+  FaVolumeUp,
+} from "react-icons/fa";
+import { FiShare2 } from "react-icons/fi";
 import StoryRow from "./Story";
 import Suggestions from "./Suggestions";
+import UploadModal from "./UploadModal";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Keyboard, Pagination, Navigation } from "swiper/modules";
+
 import {
   addPostComment,
+  addReelComment,
   fetchHomeFeed,
   fetchPostComments,
+  fetchReelComments,
+  deleteReel,
+  toggleLikeReel,
   toggleLikePost,
-  clearSession,
   getStoredSession,
 } from "../../../services/api";
+
+// Tune this to whatever height fits your layout — every card, post or reel,
+// will now be exactly this tall regardless of media aspect ratio.
+const FEED_CARD_HEIGHT = "h-[500px]";
 
 const formatDate = (value) => {
   if (!value) return "Just now";
@@ -22,44 +44,160 @@ const formatDate = (value) => {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
 };
 
-const PostCard = ({ post, currentUserId, onDeletePost }) => {
-  const [liked, setLiked] = useState(Boolean(post.isLiked));
-  const [likesCount, setLikesCount] = useState(post.likesCount || 0);
-  const [comments, setComments] = useState([]);
-  const [commentOpen, setCommentOpen] = useState(false);
-  const [newComment, setNewComment] = useState("");
-  const [commentLoading, setCommentLoading] = useState(false);
-  const [actionMenuOpen, setActionMenuOpen] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(false);
+const splitCaption = (caption, chunkSize = 480) => {
+  const chunks = [];
+  let start = 0;
 
-  const media = useMemo(() => post.media || [], [post.media]);
-  const isOwnPost = post.user?.id === currentUserId;
-
-  const loadComments = async () => {
-    try {
-      const response = await fetchPostComments(post.id);
-      setComments(response?.items || []);
-    } catch {
-      setComments([]);
+  while (start < caption.length) {
+    while (caption[start] === " ") start += 1;
+    let end = Math.min(start + chunkSize, caption.length);
+    if (end < caption.length) {
+      const wordBoundary = caption.lastIndexOf(" ", end);
+      if (wordBoundary > start) end = wordBoundary;
     }
+    chunks.push(caption.slice(start, end).trimEnd());
+    start = end;
+  }
+
+  return chunks;
+};
+
+const shareContent = async ({ type, id, caption }) => {
+  const url = `${window.location.origin}/${type}/${id}`;
+  const shareData = {
+    title: type === "post" ? "Instagram post" : "Instagram reel",
+    text: caption || "Check this out on Instagram",
+    url,
   };
 
+  if (navigator.share) {
+    await navigator.share(shareData);
+    return;
+  }
+
+  await navigator.clipboard.writeText(url);
+};
+
+// Config that captures the ONLY real differences between a post and a reel.
+const CONTENT_CONFIG = {
+  post: {
+    fetchComments: fetchPostComments,
+    addComment: addPostComment,
+    toggleLike: toggleLikePost,
+  },
+  reel: {
+    fetchComments: fetchReelComments,
+    addComment: addReelComment,
+    toggleLike: toggleLikeReel,
+  },
+};
+
+const CommentText = ({ content }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [needsExpansion, setNeedsExpansion] = useState(false);
+  const textRef = useRef(null);
+
   useEffect(() => {
-    if (commentOpen) {
-      loadComments();
-    }
-  }, [commentOpen, post.id]);
+    const textElement = textRef.current;
+    if (!textElement || expanded) return;
+
+    const measureOverflow = () => {
+      setNeedsExpansion(textElement.scrollHeight > textElement.clientHeight + 1);
+    };
+    measureOverflow();
+
+    const observer = new ResizeObserver(measureOverflow);
+    observer.observe(textElement);
+    return () => observer.disconnect();
+  }, [content, expanded]);
+
+  return (
+    <div className="min-w-0 flex-1">
+      <p ref={textRef} className={`whitespace-pre-wrap break-all ${!expanded ? "line-clamp-3" : ""}`}>
+        {content}
+      </p>
+      {needsExpansion && (
+        <button
+          type="button"
+          onClick={() => setExpanded((current) => !current)}
+          className="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-300"
+        >
+          {expanded ? "Hide" : "more"}
+        </button>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Renders either a post or a reel. `type` is "post" | "reel".
+ * Everything except media rendering and which API calls to hit is shared.
+ */
+const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
+  const config = CONTENT_CONFIG[type];
+
+  const [liked, setLiked] = useState(Boolean(item.isLiked));
+  const [likesCount, setLikesCount] = useState(item.likesCount || 0);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [shareMessage, setShareMessage] = useState("");
+  const [muted, setMuted] = useState(true);
+  const [visibleCaptionChunks, setVisibleCaptionChunks] = useState(1);
+
+  const menuRef = useRef(null);
+
+  const media = useMemo(() => {
+    if (item.media?.length) return item.media;
+    // reels from the API may only expose a single videoUrl instead of a media array
+    if (type === "reel" && item.videoUrl) return [{ url: item.videoUrl }];
+    return [];
+  }, [item.media, item.videoUrl, type]);
+
+  const isOwnItem = item.user?.id === currentUserId;
+
+  useEffect(() => {
+    let active = true;
+    config
+      .fetchComments(item.id)
+      .then((response) => {
+        if (active) setComments(response?.items || []);
+      })
+      .catch(() => {
+        if (active) setComments([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [item.id, config]);
+
+  // Close the action menu on outside click.
+  useEffect(() => {
+    if (!actionMenuOpen) return;
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setActionMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [actionMenuOpen]);
+
+  const captionChunks = useMemo(() => splitCaption(item.caption || ""), [item.caption]);
+  const totalComments = Math.max(item.commentsCount ?? 0, comments.length);
 
   const handleLikeToggle = async () => {
     if (likeLoading) return;
     setLikeLoading(true);
     try {
-      const response = await toggleLikePost(post.id, liked);
+      const response = await config.toggleLike(item.id, liked);
       const nextLiked = Boolean(response?.liked ?? !liked);
       setLiked(nextLiked);
-      setLikesCount((current) => Math.max(0, current + (nextLiked ? 1 : -1) - (liked ? 1 : 0)));
+      setLikesCount((current) => Math.max(0, current + (nextLiked ? 1 : -1)));
     } catch {
-      return;
+      // keep previous state on failure
     } finally {
       setLikeLoading(false);
     }
@@ -71,171 +209,270 @@ const PostCard = ({ post, currentUserId, onDeletePost }) => {
 
     setCommentLoading(true);
     try {
-      const response = await addPostComment(post.id, content);
+      const response = await config.addComment(item.id, content);
       setComments((current) => [response, ...current]);
       setNewComment("");
     } catch {
-      return;
+      // keep the typed comment on failure so the user can retry
     } finally {
       setCommentLoading(false);
     }
   };
 
+  const handleShare = async () => {
+    try {
+      await shareContent({ type, id: item.id, caption: item.caption });
+      setShareMessage("Link copied");
+      window.setTimeout(() => setShareMessage(""), 1800);
+    } catch {
+      setShareMessage("");
+    }
+  };
+
+  const mediaClass = "h-full w-full rounded-[30px] object-cover";
+
+  const renderMediaItem = (mediaItem) =>
+    type === "reel" ? (
+      <video
+        src={mediaItem.url}
+        poster={item.thumbnailUrl || undefined}
+        autoPlay
+        loop
+        muted={muted}
+        playsInline
+        className={mediaClass}
+      />
+    ) : (
+      <img src={mediaItem.url} alt="Post" className={mediaClass} />
+    );
+
   return (
-    <div key={post.id} className="posts mb-4">
+    <div className="posts mb-4">
       <div className="bg-[#EFEFEF] rounded-[25px] dark:bg-[#ffffff1c] post">
-        <div className="rounded-3xl flex overflow-hidden max-w-[57rem] p-[14px] dark:text-white">
-          <div className="w-[56%] relative post-content">
+        <div
+          className={`rounded-3xl flex ${FEED_CARD_HEIGHT} overflow-hidden max-w-[57rem] p-[14px] dark:text-white`}
+        >
+          {/* MEDIA */}
+          <div className="w-[56%] h-full relative post-content">
             {media.length > 1 ? (
               <Swiper
                 modules={[Keyboard, Pagination, Navigation]}
                 navigation
                 pagination={{ clickable: true }}
                 keyboard={{ enabled: true }}
-                className="w-full h-full"
+                className="h-full w-full"
               >
-                {media.map((image, index) => (
-                  <SwiperSlide key={image.id || index}>
-                    <img
-                      src={image.url}
-                      alt={`Post Slide ${index + 1}`}
-                      className="object-contain w-full h-full rounded-[30px]"
-                    />
-                    <div className="post-more">
-                      <i className="post-more-icon"></i>
-                    </div>
+                {media.map((mediaItem, index) => (
+                  <SwiperSlide key={mediaItem.id || index} className="h-full">
+                    {renderMediaItem(mediaItem)}
                   </SwiperSlide>
                 ))}
               </Swiper>
             ) : media.length === 1 ? (
-              <img
-                src={media[0].url}
-                alt="Post"
-                className="object-contain w-full h-full rounded-[30px]"
-              />
+              renderMediaItem(media[0])
             ) : (
-              <div className="flex h-full min-h-[220px] items-center justify-center rounded-[30px] bg-neutral-200 text-sm text-neutral-500">
+              <div className="flex h-full items-center justify-center rounded-[30px] bg-neutral-200 text-sm text-neutral-500">
                 No media available
               </div>
             )}
+            {type === "reel" && (
+              <button
+                type="button"
+                onClick={() => setMuted((currentMuted) => !currentMuted)}
+                aria-label={muted ? "Unmute reel" : "Mute reel"}
+                className="absolute right-5 top-5 z-20 text-2xl text-white"
+              >
+                {muted ? <FaVolumeMute /> : <FaVolumeUp />}
+              </button>
+            )}
           </div>
 
-          <div className="w-[44%] p-5 pr-0 post-detail">
-            <div className="flex items-center mb-4">
+          {/* DETAILS */}
+          <div className="w-[44%] h-full flex flex-col p-5 pr-0 post-detail">
+            <div className="flex items-center mb-4 shrink-0">
               <div className="avatar-post-div w-10 h-10 rounded-full mr-3">
                 <img
-                  src={post.user?.profileImage || "https://ui-avatars.com/api/?name=" + encodeURIComponent(post.user?.userName || "User")}
+                  src={
+                    item.user?.profileImage ||
+                    "https://ui-avatars.com/api/?name=" +
+                    encodeURIComponent(item.user?.userName || "User")
+                  }
                   alt="Avatar"
                   className="p-[2px] rounded-full cursor-pointer h-full w-full object-cover"
                 />
               </div>
               <div>
-                <p className="font-bold text-sm cursor-pointer">{post.user?.userName || "Unknown user"}</p>
-                <p className="text-xs text-gray-500 dark:text-white">{formatDate(post.createdAt)}</p>
+                <p className="font-bold text-sm cursor-pointer">
+                  {item.user?.userName || "Unknown user"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-white">{formatDate(item.createdAt)}</p>
               </div>
-              {isOwnPost && (
-                <div className="relative ml-auto">
+
+              {isOwnItem && (
+                <div className="relative ml-auto" ref={menuRef}>
                   <button
                     type="button"
-                    className="text-gray-500 dark:text-white font-bold text-[22px]"
+                    aria-label={`${type} options`}
                     onClick={() => setActionMenuOpen((open) => !open)}
+                    className={`grid h-8 w-8 place-items-center rounded-full text-gray-500 transition hover:bg-black/5 dark:text-gray-300 dark:hover:bg-white/10 ${actionMenuOpen ? "bg-black/5 dark:bg-white/10" : ""
+                      }`}
                   >
-                    &#8942;
+                    <FaEllipsisV size={14} />
                   </button>
-                  {actionMenuOpen && (
-                    <div className="absolute right-0 top-10 z-20 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg dark:border-gray-700 dark:bg-[#1f1f1f]">
-                      <button type="button" className="whitespace-nowrap text-red-500" onClick={() => onDeletePost(post.id)}>
-                        Delete post
-                      </button>
-                    </div>
-                  )}
+
+                  <div
+                    className={`absolute right-0 top-10 z-20 min-w-[170px] origin-top-right rounded-xl border border-gray-100 bg-white py-1.5 shadow-lg ring-1 ring-black/5 transition duration-150 dark:border-gray-800 dark:bg-[#1f1f1f] ${actionMenuOpen
+                        ? "scale-100 opacity-100"
+                        : "pointer-events-none scale-95 opacity-0"
+                      }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionMenuOpen(false);
+                        onEdit(item, type);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium transition hover:bg-gray-50 dark:hover:bg-white/5"
+                    >
+                      <FaEdit size={13} />
+                      Edit {type}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionMenuOpen(false);
+                        onDelete(item.id);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                    >
+                      <FaTrashAlt size={13} />
+                      Delete {type}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            {post.caption && (
-              <p className="text-sm mb-4">
-                {post.caption}
-              </p>
+            {item.caption && (
+              <div className={`mb-4 shrink-0 ${captionChunks.length > 1 ? "flex h-32 flex-col" : ""}`}>
+                <div className={`space-y-2 text-sm ${captionChunks.length > 1 ? "min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
+                  {captionChunks.slice(0, visibleCaptionChunks).map((chunk, index) => (
+                    <p key={index} className={visibleCaptionChunks === 1 && captionChunks.length > 1 ? "line-clamp-2" : "whitespace-pre-wrap"}>
+                      {chunk}
+                    </p>
+                  ))}
+                </div>
+                <div className="mt-1 flex shrink-0 gap-3">
+                  {visibleCaptionChunks < captionChunks.length && (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCaptionChunks((visible) => visible + 1)}
+                    className="text-xs font-semibold text-gray-500 dark:text-gray-300"
+                  >
+                    {visibleCaptionChunks === 1 ? "more" : "Show more"}
+                  </button>
+                  )}
+                  {visibleCaptionChunks > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCaptionChunks(1)}
+                      className="text-xs font-semibold text-gray-500 dark:text-gray-300"
+                    >
+                      Hide
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
 
-            <div className="flex mb-4 flex-col">
-              <div className="action-div w-[188px] h-[46px] bg-[#F8F8F8] rounded-full flex items-center justify-center">
-                <button type="button" className="mr-3 w-[20px] h-[20px]" onClick={handleLikeToggle} disabled={likeLoading}>
-                  <i className={`post-like ${liked ? "text-red-500" : "text-gray-500"}`} aria-label="Like post"></i>
+            <div className="flex mb-4 flex-col shrink-0">
+              <div className="flex w-fit items-center gap-4 bg-transparent">
+                <button
+                  type="button"
+                  aria-label={`Like ${type}`}
+                  className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10"
+                  onClick={handleLikeToggle}
+                  disabled={likeLoading}
+                >
+                  {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart className="text-gray-400" />}
+                  <span>{likesCount.toLocaleString()}</span>
                 </button>
-                <button type="button" className="mr-3 w-[20px] h-[20px]" onClick={() => setCommentOpen((open) => !open)}>
-                  <i className="post-commant" aria-label="Comments"></i>
+                <button
+                  type="button"
+                  aria-label={`${type} comments`}
+                  className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm text-gray-500 transition hover:bg-black/5 dark:text-gray-300 dark:hover:bg-white/10"
+                >
+                  <FaRegComment />
+                  <span>{totalComments.toLocaleString()}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Share ${type}`}
+                  title={`Share ${type}`}
+                  onClick={handleShare}
+                  className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm text-gray-500 transition hover:bg-black/5 dark:text-gray-300 dark:hover:bg-white/10"
+                >
+                  <FiShare2 />
+                  {shareMessage && <span className="text-xs">{shareMessage}</span>}
                 </button>
               </div>
-              <p className="text-[#000000] text-base ml-3 mt-2 dark:text-white">
-                {likesCount.toLocaleString()} likes
-              </p>
             </div>
 
-            <div className="text-sm">
+            {/* Scrollable comments — this is what keeps the card height fixed
+                even when there are lots of comments */}
+            <div className="min-h-[112px] min-w-0 flex-1 overflow-y-auto pr-2 text-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {comments.length > 0 ? (
-                <div className="mb-3 space-y-3">
-                  {comments.slice(0, 2).map((comment) => (
+                <div className="space-y-3">
+                  {comments.map((comment) => (
                     <div key={comment.id} className="flex items-start">
                       <img
-                        src={comment.user?.profileImage || "https://ui-avatars.com/api/?name=" + encodeURIComponent(comment.user?.userName || "User")}
+                        src={
+                          comment.user?.profileImage ||
+                          "https://ui-avatars.com/api/?name=" +
+                          encodeURIComponent(comment.user?.userName || "User")
+                        }
                         alt={comment.user?.userName || "User"}
                         className="w-8 h-8 rounded-full mr-3 cursor-pointer"
                       />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p>
-                          <span className="font-bold cursor-pointer">{comment.user?.userName || "User"}</span>{" "}
-                          {comment.content}
+                          <span className="font-bold cursor-pointer">
+                            {comment.user?.userName || "User"}
+                          </span>{" "}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1 dark:text-white">{formatDate(comment.createdAt)}</p>
+                        <CommentText content={comment.content} />
+                        <p className="text-xs text-gray-500 mt-1 dark:text-white">
+                          {formatDate(comment.createdAt)}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mb-3 text-xs text-gray-500">No comments yet.</p>
+                <p className="text-xs text-gray-500">No comments yet.</p>
               )}
+            </div>
 
-              <button type="button" className="text-xs text-gray-500 mb-4 cursor-pointer dark:text-white" onClick={() => setCommentOpen((open) => !open)}>
-                {commentOpen ? "Hide comments" : `View all ${post.commentsCount || comments.length} comments`}
+            <div className="flex h-10 mt-3 shrink-0">
+              <input
+                value={newComment}
+                onChange={(event) => setNewComment(event.target.value)}
+                placeholder="Add a comment..."
+                className="min-w-0 flex-1 rounded-l-[10px] border border-[#ddd] bg-white px-3 text-xs text-black outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleAddComment}
+                disabled={commentLoading || !newComment.trim()}
+                aria-label={commentLoading ? "Posting comment" : "Post comment"}
+                className="comment-submit-button cursor-pointer rounded-r-[10px] px-3 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                {commentLoading ? (
+                  <FaPlaneDeparture className="plane-departure-animation" />
+                ) : (
+                  <FaPlane />
+                )}
               </button>
-
-              {commentOpen && (
-                <div className="space-y-3">
-                  <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-[#0f0f0f]">
-                    {comments.length === 0 ? (
-                      <p className="text-xs text-gray-500">No comments available.</p>
-                    ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className="flex items-start gap-2 text-xs">
-                          <img src={comment.user?.profileImage || "https://ui-avatars.com/api/?name=" + encodeURIComponent(comment.user?.userName || "User")} alt={comment.user?.userName || "User"} className="h-6 w-6 rounded-full" />
-                          <div>
-                            <span className="font-bold">{comment.user?.userName || "User"}</span>
-                            <span className="ml-2">{comment.content}</span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      value={newComment}
-                      onChange={(event) => setNewComment(event.target.value)}
-                      placeholder="Add a comment..."
-                      className="h-9 flex-1 rounded-full border border-[#ddd] bg-white px-3 text-xs text-black outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddComment}
-                      disabled={commentLoading || !newComment.trim()}
-                      className="rounded-full bg-[#4c77e2] px-3 text-xs font-semibold text-white disabled:opacity-60"
-                    >
-                      {commentLoading ? "Posting..." : "Post"}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -245,16 +482,17 @@ const PostCard = ({ post, currentUserId, onDeletePost }) => {
 };
 
 const Post = () => {
-  const [posts, setPosts] = useState([]);
+  const [feedItems, setFeedItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingItem, setEditingItem] = useState(null);
   const { user } = getStoredSession();
 
   const loadPosts = async () => {
     try {
       setLoading(true);
       const response = await fetchHomeFeed();
-      setPosts(response?.items || []);
+      setFeedItems(response?.items || []);
       setError("");
     } catch (feedError) {
       setError(feedError.message || "Unable to load posts.");
@@ -265,6 +503,10 @@ const Post = () => {
 
   useEffect(() => {
     loadPosts();
+
+    const handleContentCreated = () => loadPosts();
+    window.addEventListener("instagram:content-created", handleContentCreated);
+    return () => window.removeEventListener("instagram:content-created", handleContentCreated);
   }, []);
 
   const handleDeletePost = async (postId) => {
@@ -277,9 +519,18 @@ const Post = () => {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || "Failed to delete post");
-      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
+      setFeedItems((currentItems) => currentItems.filter((item) => item.id !== postId));
     } catch (deleteError) {
       setError(deleteError.message || "Unable to delete post.");
+    }
+  };
+
+  const handleDeleteReel = async (reelId) => {
+    try {
+      await deleteReel(reelId);
+      setFeedItems((currentItems) => currentItems.filter((item) => item.id !== reelId));
+    } catch (deleteError) {
+      setError(deleteError.message || "Unable to delete reel.");
     }
   };
 
@@ -295,14 +546,22 @@ const Post = () => {
               <div className="pt-4 content w-[75%] h-full">
                 {loading && <div className="mb-5 text-sm text-gray-500">Loading feed...</div>}
                 {!loading && error && <div className="mb-5 text-sm text-red-500">{error}</div>}
-                {!loading && !error && posts.length === 0 && (
+                {!loading && !error && feedItems.length === 0 && (
                   <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-[#111111] dark:text-gray-300">
                     No posts yet. Follow people to see their posts here.
                   </div>
                 )}
-                {!loading && posts.map((post) => (
-                  <PostCard key={post.id} post={post} currentUserId={user?.id} onDeletePost={handleDeletePost} />
-                ))}
+                {!loading &&
+                  feedItems.map((item) => (
+                    <FeedCard
+                      key={`${item.contentType}-${item.id}`}
+                      type={item.contentType === "reel" ? "reel" : "post"}
+                      item={item}
+                      currentUserId={user?.id}
+                      onDelete={item.contentType === "reel" ? handleDeleteReel : handleDeletePost}
+                      onEdit={(editItem, type) => setEditingItem({ ...editItem, contentType: type })}
+                    />
+                  ))}
               </div>
               <div className="content-suggestion w-[25%]">
                 <Suggestions />
@@ -311,6 +570,7 @@ const Post = () => {
           </div>
         </div>
       </div>
+      {editingItem && <UploadModal editItem={editingItem} onClose={() => setEditingItem(null)} />}
     </div>
   );
 };
