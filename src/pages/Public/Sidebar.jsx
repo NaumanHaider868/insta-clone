@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../assets/css/style.scss";
 import { Drawer } from "@mui/material";
-import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut, FiPlus } from 'react-icons/fi';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import user19 from "../../assets/images/users-imgs/user19.jpeg";
@@ -27,11 +27,13 @@ import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 import { clearSession } from "../../services/api";
+import UploadModal from "./HomeComponents/UploadModal";
 
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const notifications = [
     {
@@ -145,6 +147,15 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
               )}
             </Link>
           </button>
+          <button
+            type="button"
+            title="Create post or reel"
+            aria-label="Create post or reel"
+            className="rounded-full p-2 text-gray-700 transition hover:bg-white dark:text-white dark:hover:bg-white/10"
+            onClick={() => setIsUploadOpen(true)}
+          >
+            <FiPlus size={24} />
+          </button>
           <button className={`p-2`} onClick={() => setIsOpen(true)}>
             {isOpen ? (
               <img src={LikeIcon} className="w-6 h-6 text-gray-700 dark:!text-white" />
@@ -253,6 +264,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
           </Drawer>
         )}
       </div>
+      {isUploadOpen && <UploadModal onClose={() => setIsUploadOpen(false)} />}
     </div>
   );
 };

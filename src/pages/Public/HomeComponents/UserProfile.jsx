@@ -1,36 +1,355 @@
-import React, { useEffect, useState } from 'react';
-import user1 from '../../../assets/images/users-imgs/user6.jpg';
-import explore1 from '../../../assets/images/users-imgs/explore1.jpg';
-import explore2 from '../../../assets/images/users-imgs/explore2.jpg';
-import explore3 from '../../../assets/images/users-imgs/explore3.jpg';
-import explore4 from '../../../assets/images/users-imgs/explore4.jpg';
-import explore7 from '../../../assets/images/users-imgs/explore7.jpg';
+import { useEffect, useRef, useState } from 'react';
+import { FaCamera, FaChevronLeft, FaChevronRight, FaComment, FaEdit, FaHeart, FaPlane, FaPlaneDeparture, FaPlay, FaRegHeart, FaTimes, FaTrash } from 'react-icons/fa';
+import {
+    addPostComment,
+    addReelComment,
+    fetchPostComments,
+    fetchReelComments,
+    fetchUserPosts,
+    fetchUserProfile,
+    fetchUserReels,
+    getStoredSession,
+    toggleLikePost,
+    toggleLikeReel,
+    updateUserProfile,
+} from '../../../services/api';
 
-const data = {
-    'Posts': [
-        { id: 1, src: explore1, likes: '15k', comments: '2k', isReel: false, isMultiple: false },
-        { id: 2, src: explore2, likes: '5k', comments: '1k', isReel: false, isMultiple: true },
-        { id: 3, src: explore3, likes: '20k', comments: '3k', isReel: true, isMultiple: false },
-        { id: 4, src: explore4, likes: '12k', comments: '1k', isReel: false, isMultiple: false },
-    ],
-    'Reels': [
-        { id: 3, src: explore3, likes: '20k', comments: '3k', isReel: true, isMultiple: false },
-        { id: 7, src: explore7, likes: '4k', comments: '600', isReel: true, isMultiple: false },
-    ],
+const formatDate = (value) => {
+    if (!value) return 'Just now';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Just now';
+    return new Intl.DateTimeFormat('en', { month: 'long', day: 'numeric', year: 'numeric' }).format(date);
+};
+
+const ProfileEditor = ({ profile, onClose, onSave }) => {
+    const [bio, setBio] = useState(profile.profile || '');
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+
+    const submit = async (event) => {
+        event.preventDefault();
+        setSaving(true);
+        setError('');
+        try {
+            await onSave({ profile: bio });
+        } catch (saveError) {
+            setError(saveError.message || 'Unable to update profile.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4" onMouseDown={onClose}>
+            <form onSubmit={submit} onMouseDown={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl bg-white p-6 text-gray-900 shadow-2xl dark:bg-[#1d1d1d] dark:text-white">
+                <div className="mb-6 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Edit profile</h2>
+                    <button type="button" aria-label="Close" onClick={onClose} className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"><FaTimes /></button>
+                </div>
+                <label className="block text-sm font-semibold" htmlFor="profile-bio">Bio</label>
+                <textarea id="profile-bio" value={bio} onChange={(event) => setBio(event.target.value)} maxLength={500} rows={5} placeholder="Write a little about yourself" className="mt-2 w-full resize-none rounded-xl border border-gray-200 bg-transparent p-3 text-sm outline-none focus:border-gray-500 dark:border-gray-700" />
+                <div className="mt-1 flex justify-end text-xs text-gray-500">{bio.length}/500</div>
+                {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+                <button type="submit" disabled={saving} className="mt-5 w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white disabled:opacity-60 dark:bg-white dark:text-black">{saving ? 'Saving...' : 'Save changes'}</button>
+            </form>
+        </div>
+    );
+};
+
+const AvatarConfirmation = ({ action, profile, saving, onCancel, onConfirm }) => {
+    const [preview, setPreview] = useState('');
+
+    useEffect(() => {
+        if (action?.type !== 'change' || !action.image) {
+            setPreview('');
+            return undefined;
+        }
+        const previewUrl = URL.createObjectURL(action.image);
+        setPreview(previewUrl);
+        return () => URL.revokeObjectURL(previewUrl);
+    }, [action]);
+
+    const isRemoving = action.type === 'remove';
+    const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.userName || 'User')}`;
+    return (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 p-4" onMouseDown={onCancel}>
+            <div onMouseDown={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-2xl bg-white p-6 text-center text-gray-900 shadow-2xl dark:bg-[#1d1d1d] dark:text-white">
+                <img src={isRemoving ? fallback : preview} alt="Profile photo preview" className="mx-auto mb-4 h-24 w-24 rounded-full object-cover" />
+                <h2 className="text-lg font-semibold">{isRemoving ? 'Remove profile picture?' : 'Change profile picture?'}</h2>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">{isRemoving ? 'Your profile will use the default image.' : 'Use this image as your profile picture?'}</p>
+                <div className="mt-6 flex gap-3">
+                    <button type="button" onClick={onCancel} disabled={saving} className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold dark:border-gray-700">Cancel</button>
+                    <button type="button" onClick={onConfirm} disabled={saving} className="flex-1 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 dark:bg-white dark:text-black">{saving ? 'Saving...' : isRemoving ? 'Remove' : 'Change photo'}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ProfileExpandableText = ({ content }) => {
+    const [expanded, setExpanded] = useState(false);
+    const [overflow, setOverflow] = useState(false);
+    const textRef = useRef(null);
+
+    useEffect(() => {
+        const element = textRef.current;
+        if (!element || expanded) return undefined;
+        const measure = () => setOverflow(element.scrollHeight > element.clientHeight + 1);
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, [content, expanded]);
+
+    return (
+        <div className="min-w-0">
+            <p ref={textRef} className={`whitespace-pre-wrap break-all text-sm ${expanded ? '' : 'line-clamp-3'}`}>{content}</p>
+            {overflow && <button type="button" onClick={() => setExpanded((value) => !value)} className="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-300">{expanded ? 'Hide' : 'more'}</button>}
+        </div>
+    );
+};
+
+const ProfileContentModal = ({ item, type, onClose }) => {
+    const media = type === 'reel'
+        ? (item.media?.length ? item.media : [{ url: item.videoUrl }])
+        : (item.media || []);
+    const [activeMedia, setActiveMedia] = useState(0);
+    const [comments, setComments] = useState([]);
+    const [commentsPage, setCommentsPage] = useState(1);
+    const [hasMoreComments, setHasMoreComments] = useState(false);
+    const [commentsLoading, setCommentsLoading] = useState(true);
+    const [commentsError, setCommentsError] = useState('');
+    const [liked, setLiked] = useState(Boolean(item.isLiked));
+    const [likesCount, setLikesCount] = useState(item.likesCount || 0);
+    const [commentsCount, setCommentsCount] = useState(item.commentsCount || 0);
+    const [likeLoading, setLikeLoading] = useState(false);
+    const [commentText, setCommentText] = useState('');
+    const [commentSubmitting, setCommentSubmitting] = useState(false);
+    const userName = item.user?.userName || 'User';
+    const fetchComments = type === 'reel' ? fetchReelComments : fetchPostComments;
+    const addComment = type === 'reel' ? addReelComment : addPostComment;
+    const toggleLike = type === 'reel' ? toggleLikeReel : toggleLikePost;
+
+    useEffect(() => {
+        let active = true;
+        setCommentsLoading(true);
+        fetchComments(item.id, 1, 10)
+            .then((response) => {
+                if (!active) return;
+                setComments(response?.items || []);
+                setCommentsPage(response?.pagination?.page || 1);
+                setHasMoreComments(Boolean(response?.pagination?.hasNextPage));
+                setCommentsError('');
+            })
+            .catch((error) => {
+                if (active) setCommentsError(error.message || 'Unable to load comments.');
+            })
+            .finally(() => {
+                if (active) setCommentsLoading(false);
+            });
+        return () => { active = false; };
+    }, [fetchComments, item.id]);
+
+    useEffect(() => {
+        const bodyOverflow = document.body.style.overflow;
+        const documentOverflow = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = bodyOverflow;
+            document.documentElement.style.overflow = documentOverflow;
+        };
+    }, []);
+
+    const loadMoreComments = async () => {
+        if (commentsLoading || !hasMoreComments) return;
+        setCommentsLoading(true);
+        try {
+            const response = await fetchComments(item.id, commentsPage + 1, 10);
+            setComments((current) => [...current, ...(response?.items || [])]);
+            setCommentsPage(response?.pagination?.page || commentsPage + 1);
+            setHasMoreComments(Boolean(response?.pagination?.hasNextPage));
+            setCommentsError('');
+        } catch (error) {
+            setCommentsError(error.message || 'Unable to load more comments.');
+        } finally {
+            setCommentsLoading(false);
+        }
+    };
+
+    const handleLike = async () => {
+        if (likeLoading) return;
+        setLikeLoading(true);
+        try {
+            const response = await toggleLike(item.id, liked);
+            const nextLiked = Boolean(response?.liked ?? !liked);
+            setLiked(nextLiked);
+            setLikesCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
+        } catch (error) {
+            setCommentsError(error.message || 'Unable to update like.');
+        } finally {
+            setLikeLoading(false);
+        }
+    };
+
+    const handleAddComment = async (event) => {
+        event.preventDefault();
+        const content = commentText.trim();
+        if (!content || commentSubmitting) return;
+        setCommentSubmitting(true);
+        try {
+            const newComment = await addComment(item.id, content);
+            setComments((current) => [newComment, ...current.filter((comment) => comment.id !== newComment.id)]);
+            setCommentsCount((count) => count + 1);
+            setCommentText('');
+            setCommentsError('');
+        } catch (error) {
+            setCommentsError(error.message || 'Unable to add comment.');
+        } finally {
+            setCommentSubmitting(false);
+        }
+    };
+
+    useEffect(() => {
+        const closeOnEscape = (event) => {
+            if (event.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', closeOnEscape);
+        return () => window.removeEventListener('keydown', closeOnEscape);
+    }, [onClose]);
+
+    return (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 p-3 sm:p-6" onMouseDown={onClose}>
+            <div onMouseDown={(event) => event.stopPropagation()} className="relative grid max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-xl bg-white text-gray-900 dark:bg-[#1d1d1d] dark:text-white md:grid-cols-[1.2fr_0.8fr]">
+                <button type="button" aria-label="Close post" onClick={onClose} className="absolute right-3 top-3 z-20 rounded-full bg-black/60 p-2 text-white"><FaTimes /></button>
+                <div className="relative flex min-h-[300px] items-center justify-center bg-black md:min-h-[70vh]">
+                    {media.length > 0 && (type === 'reel'
+                        ? <video src={media[activeMedia]?.url} poster={item.thumbnailUrl || undefined} controls autoPlay muted playsInline className="max-h-[90vh] w-full object-contain" />
+                        : <img src={media[activeMedia]?.url} alt="Post" className="max-h-[90vh] w-full object-contain" />)}
+                    {media.length > 1 && (
+                        <>
+                            <button type="button" aria-label="Previous media" onClick={() => setActiveMedia((index) => (index === 0 ? media.length - 1 : index - 1))} className="absolute left-3 rounded-full bg-black/60 p-2 text-white"><FaChevronLeft /></button>
+                            <button type="button" aria-label="Next media" onClick={() => setActiveMedia((index) => (index + 1) % media.length)} className="absolute right-3 rounded-full bg-black/60 p-2 text-white"><FaChevronRight /></button>
+                        </>
+                    )}
+                </div>
+                <div className="flex min-h-0 flex-col p-5 md:max-h-[90vh]">
+                    <div className="flex items-center gap-3 border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <img src={item.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}`} alt="" className="h-10 w-10 rounded-full object-cover" />
+                        <div><p className="text-sm font-semibold">{userName}</p><p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p></div>
+                    </div>
+                    {item.caption && (
+                        <div className="max-h-32 shrink-0 overflow-y-auto py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                            <ProfileExpandableText content={item.caption} />
+                        </div>
+                    )}
+                    <div className="min-h-[112px] min-w-0 flex-1 overflow-y-auto border-t border-gray-200 py-4 pr-2 text-sm dark:border-gray-700 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                        <h3 className="mb-4 text-sm font-semibold">Comments</h3>
+                        {comments.length === 0 && !commentsLoading ? (
+                            <p className="text-sm text-gray-500">No comments yet.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {comments.map((comment) => (
+                                    <div key={comment.id} className="flex items-start">
+                                        <img src={comment.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.userName || 'User')}`} alt={comment.user?.userName || 'User'} className="mr-3 h-8 w-8 shrink-0 cursor-pointer rounded-full object-cover" />
+                                        <div className="min-w-0 flex-1">
+                                            <p><span className="cursor-pointer font-bold">{comment.user?.userName || 'User'}</span></p>
+                                            <ProfileExpandableText content={comment.content} />
+                                            <p className="mt-1 text-xs text-gray-500 dark:text-white">{formatDate(comment.createdAt)}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {commentsError && <p className="mt-3 text-xs text-red-500">{commentsError}</p>}
+                        {hasMoreComments && <button type="button" onClick={loadMoreComments} disabled={commentsLoading} className="mt-4 text-sm font-semibold text-blue-600 disabled:opacity-60">{commentsLoading ? 'Loading...' : 'Load more comments'}</button>}
+                        {commentsLoading && comments.length === 0 && <p className="text-sm text-gray-500">Loading comments...</p>}
+                    </div>
+                    <div className="flex gap-5 border-t border-gray-200 pt-4 text-sm dark:border-gray-700">
+                        <button type="button" onClick={handleLike} disabled={likeLoading} aria-label={liked ? 'Unlike' : 'Like'} className="inline-flex items-center gap-2 disabled:opacity-60">
+                            {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}{likesCount.toLocaleString()}
+                        </button>
+                        <span className="inline-flex items-center gap-2"><FaComment />{commentsCount.toLocaleString()}</span>
+                    </div>
+                    <p className="mt-3 text-xs uppercase text-gray-500">{formatDate(item.createdAt)}</p>
+                    <form onSubmit={handleAddComment} className="mt-3 flex h-10 shrink-0">
+                        <input value={commentText} onChange={(event) => setCommentText(event.target.value)} maxLength={1000} placeholder="Add a comment..." aria-label="Add a comment" className="min-w-0 flex-1 rounded-l-[10px] border border-[#ddd] bg-white px-3 text-xs text-black outline-none" />
+                        <button type="submit" disabled={!commentText.trim() || commentSubmitting} aria-label={commentSubmitting ? 'Posting comment' : 'Post comment'} className="comment-submit-button cursor-pointer rounded-r-[10px] px-3 text-xs font-semibold text-white disabled:opacity-60">{commentSubmitting ? <FaPlaneDeparture className="plane-departure-animation" /> : <FaPlane />}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const UserProfile = () => {
     const [activeTab, setActiveTab] = useState('Posts');
-
-    const filteredData = activeTab === 'Reels'
-        ? data['Reels']
-        : data['Posts'];
-
-    let isDark;
+    const { user: sessionUser } = getStoredSession();
+    const userId = sessionUser?.id;
+    const [profile, setProfile] = useState(null);
+    const [posts, setPosts] = useState([]);
+    const [reels, setReels] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [editorOpen, setEditorOpen] = useState(false);
+    const [selectedContent, setSelectedContent] = useState(null);
+    const [avatarAction, setAvatarAction] = useState(null);
+    const [avatarSaving, setAvatarSaving] = useState(false);
+    const avatarInputRef = useRef(null);
 
     useEffect(() => {
-        isDark = localStorage.getItem("dark-mode")
-    }, [])
+        if (!userId) {
+            setError('Sign in to view your profile.');
+            setLoading(false);
+            return undefined;
+        }
+        let active = true;
+        const loadProfile = async () => {
+            try {
+                const [profileData, postsData, reelsData] = await Promise.all([
+                    fetchUserProfile(userId),
+                    fetchUserPosts(userId),
+                    fetchUserReels(userId),
+                ]);
+                if (!active) return;
+                setProfile(profileData);
+                setPosts(postsData?.items || []);
+                setReels(reelsData?.items || []);
+                setError('');
+            } catch (loadError) {
+                if (active) setError(loadError.message || 'Unable to load profile.');
+            } finally {
+                if (active) setLoading(false);
+            }
+        };
+        loadProfile();
+        return () => { active = false; };
+    }, [userId]);
+
+    const saveProfile = async (values) => {
+        const updatedProfile = await updateUserProfile(values);
+        setProfile(updatedProfile);
+        setEditorOpen(false);
+    };
+
+    const confirmAvatarAction = async () => {
+        if (!avatarAction || avatarSaving) return;
+        setAvatarSaving(true);
+        setError('');
+        try {
+            const updatedProfile = await updateUserProfile({
+                profile: profile.profile || '',
+                image: avatarAction.type === 'change' ? avatarAction.image : undefined,
+                removeImage: avatarAction.type === 'remove',
+            });
+            setProfile(updatedProfile);
+            setAvatarAction(null);
+        } catch (updateError) {
+            setError(updateError.message || 'Unable to update profile picture.');
+        } finally {
+            setAvatarSaving(false);
+        }
+    };
 
     const tabs = [
         {
@@ -78,60 +397,68 @@ const UserProfile = () => {
         }
     ];
 
+    const filteredData = activeTab === 'Posts' ? posts : activeTab === 'Reels' ? reels : [];
+    const displayName = profile ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || profile.userName : '';
+    const profileImage = profile?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.userName || 'User')}`;
+
     return (
         <div className="profile h-full">
             <div className="flex items-center pt-4 pb-8 profile-div">
                 <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
                     <div className="flex flex-col items-center main-profile">
                         <div className="flex w-full gap-6 items-start p-6 user-profile">
-                            <div className="w-[195px] rounded-full overflow-hidden mb-4 bg-story user-profile-img">
-                                <img
-                                    src={user1}
-                                    alt="Profile"
-                                    className="w-full h-full object-cover cursor-pointer p-[2px] rounded-[50%]"
-                                />
+                            <div className="group relative h-32 w-32 shrink-0 sm:h-40 sm:w-40">
+                                <div className="user-profile-img absolute inset-0 overflow-hidden rounded-full bg-story">
+                                    <img src={profileImage} alt="Profile" className="h-full w-full rounded-full object-cover p-[2px]" />
+                                    <button type="button" title="Change profile picture" aria-label="Change profile picture" onClick={() => avatarInputRef.current?.click()} className="absolute inset-0 grid place-items-center rounded-full bg-black/45 text-xl text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                                        <FaCamera />
+                                    </button>
+                                </div>
+                                {profile?.profileImage && <button type="button" title="Remove profile picture" aria-label="Remove profile picture" onClick={() => setAvatarAction({ type: 'remove' })} className="absolute -right-1 -top-1 z-20 rounded-full bg-black/75 p-2 text-sm text-white opacity-0 shadow transition-opacity hover:bg-red-600 group-hover:opacity-100 focus:opacity-100">
+                                    <FaTrash />
+                                </button>}
+                                <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => {
+                                    const image = event.target.files?.[0];
+                                    event.target.value = '';
+                                    if (image) setAvatarAction({ type: 'change', image });
+                                }} />
                             </div>
 
-                            <div className="flex flex-col user-profile-deatil">
-                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Nauman Haider</h1>
-                                <p className="text-sm text-gray-500 dark:text-white mt-[5px] mb-[5px]">@naumanh</p>
+                            <div className="flex min-w-0 flex-1 flex-col user-profile-deatil">
+                                <h1 className="break-words text-2xl font-semibold text-gray-900 dark:text-white">{displayName || profile?.userName || 'Loading profile...'}</h1>
+                                <p className="mb-1 mt-[5px] text-sm text-gray-500 dark:text-white">@{profile?.userName || ''}</p>
 
-                                <div className="flex space-x-4 mt-[10px] mb-[10px]">
+                                <div className="mb-[10px] mt-[10px] flex flex-wrap gap-x-5 gap-y-2">
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="font-bold text-[14px] dark:text-white">225</span>
+                                        <span className="font-bold text-[14px] dark:text-white">{(profile?._count?.posts ?? 0) + (profile?._count?.reels ?? 0)}</span>
                                         <p className="text-sm text-gray-500 dark:text-white">Posts</p>
                                     </div>
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="font-bold text-[14px] dark:text-white">225</span>
+                                        <span className="font-bold text-[14px] dark:text-white">{profile?._count?.followers ?? 0}</span>
                                         <p className="text-sm text-gray-500 dark:text-white">Followers</p>
                                     </div>
                                     <div className="text-center flex items-center gap-[6px] cursor-pointer">
-                                        <span className="font-bold text-[14px] dark:text-white">225</span>
+                                        <span className="font-bold text-[14px] dark:text-white">{profile?._count?.following ?? 0}</span>
                                         <p className="text-sm text-gray-500 dark:text-white">Following</p>
                                     </div>
                                 </div>
 
-                                <p className='dark:text-white'>
-                                    <span className="font-bold dark:text-white">Bio</span>: It always seems impossible until it is done. 💖 Nature lover: 🌿⛰️🌸 Web Developer 💻
-                                </p>
-
-                                <a
-                                    href="https://www.linkedin.com/in/nauman-haider-107002295/"
-                                    className="text-blue-500 mt-4 underline"
-                                >
-                                    https://www.linkedin.com/in/nauman-haider-107002295/
-                                </a>
-
-                                <button className="edit-btn mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-[50px] font-medium text-gray-700">
+                                {profile?.profile && <p className="whitespace-pre-wrap break-words text-sm text-gray-700 dark:text-gray-200">{profile.profile}</p>}
+                                <button type="button" onClick={() => setEditorOpen(true)} disabled={!profile} className="edit-btn mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                                    <FaEdit />
                                     Edit Profile
                                 </button>
                             </div>
                         </div>
 
+                        {error && <p className="px-6 pb-3 text-sm text-red-500">{error}</p>}
+
                         <div className="p-6 w-full flex flex-col items-center">
                             <div className="flex space-x-6 ml-[8rem] profile-tabs">
                                 {tabs.map(({ name, icon }) => (
                                     <button
+                                        type="button"
+                                        key={name}
                                         onClick={() => setActiveTab(name)}
                                         className={`flex items-center space-x-2 text-sm ${activeTab === name ? 'text-blue-600 dark:text-white underline font-bold' : 'text-gray-500 dark:text-white font-medium'}`}
                                     >
@@ -142,45 +469,46 @@ const UserProfile = () => {
                             </div>
 
                             <div className="container mx-auto mt-6">
-                                <div className="grid-profile grid grid-cols-4 gap-4">
-                                    {filteredData.map((image) => (
-                                        <div key={image.id} className="relative group">
-                                            <img
-                                                src={image.src}
-                                                alt="Post"
-                                                className="w-full h-full object-cover rounded-lg group-hover:opacity-80 transition duration-300"
-                                            />
-                                            {image.isMultiple && (
-                                                <div className="absolute top-2 right-2 text-white">
-                                                    <i className="h-6 w-6 icon-multiple-white"></i>
-                                                </div>
-                                            )}
-                                            {image.isReel && (
-                                                <div className="absolute top-2 right-2 text-white">
-                                                    <i className="h-6 w-6 icon-reel-white"></i>
-                                                </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex justify-center items-center transition-opacity duration-300 rounded-lg">
-                                                <div className="text-white text-lg flex space-x-4">
-                                                    <div className="flex items-center space-x-1">
-                                                        <i className="far fa-heart"></i>
-                                                        <span>{image.likes}</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-1">
-                                                        <i className="icon-comment"></i>
-                                                        <span>{image.comments}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                {loading ? (
+                                    <p className="py-10 text-center text-sm text-gray-500">Loading profile...</p>
+                                ) : activeTab === 'Saved' ? (
+                                    <p className="py-10 text-center text-sm text-gray-500">Saved posts are not available yet.</p>
+                                ) : filteredData.length === 0 ? (
+                                    <p className="py-10 text-center text-sm text-gray-500">No {activeTab.toLowerCase()} yet.</p>
+                                ) : (
+                                <div className="grid-profile grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
+                                    {filteredData.map((content) => {
+                                        const isReel = activeTab === 'Reels';
+                                        const mediaUrl = isReel
+                                            ? (content.thumbnailUrl || content.media?.[0]?.url || content.videoUrl)
+                                            : content.media?.[0]?.url;
+                                        return (
+                                            <button key={content.id} type="button" onClick={() => setSelectedContent({ item: content, type: isReel ? 'reel' : 'post' })} className="group relative aspect-square overflow-hidden rounded-lg bg-black text-left">
+                                                {isReel ? (
+                                                    <video src={content.media?.[0]?.url || content.videoUrl} poster={content.thumbnailUrl || undefined} muted preload="metadata" className="h-full w-full object-cover transition duration-300 group-hover:opacity-75" />
+                                                ) : (
+                                                    <img src={mediaUrl} alt={content.caption || 'Post'} className="h-full w-full object-cover transition duration-300 group-hover:opacity-75" />
+                                                )}
+                                                {isReel && <FaPlay className="absolute right-3 top-3 text-white drop-shadow" />}
+                                                {content.media?.length > 1 && <span className="absolute right-3 top-3 rounded bg-black/50 px-2 py-1 text-xs text-white">{content.media.length}</span>}
+                                                <span className="absolute inset-0 flex items-center justify-center gap-5 bg-black/45 text-sm font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                                                    <span className="inline-flex items-center gap-2"><FaHeart />{content.likesCount || 0}</span>
+                                                    <span className="inline-flex items-center gap-2"><FaComment />{content.commentsCount || 0}</span>
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
+                                )}
                             </div>
                         </div>
 
                     </div>
                 </div>
             </div>
+            {editorOpen && profile && <ProfileEditor profile={profile} onClose={() => setEditorOpen(false)} onSave={saveProfile} />}
+            {avatarAction && profile && <AvatarConfirmation action={avatarAction} profile={profile} saving={avatarSaving} onCancel={() => !avatarSaving && setAvatarAction(null)} onConfirm={confirmAvatarAction} />}
+            {selectedContent && <ProfileContentModal key={`${selectedContent.type}-${selectedContent.item.id}`} item={selectedContent.item} type={selectedContent.type} onClose={() => setSelectedContent(null)} />}
         </div>
     );
 };
