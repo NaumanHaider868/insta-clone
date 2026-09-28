@@ -138,7 +138,12 @@ const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
 
   const [liked, setLiked] = useState(Boolean(item.isLiked));
   const [likesCount, setLikesCount] = useState(item.likesCount || 0);
-  const [comments, setComments] = useState([]);
+  const [commentsCount, setCommentsCount] = useState(item.commentsCount || 0);
+  const [comments, setComments] = useState(item.comments || []);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [hasMoreComments, setHasMoreComments] = useState((item.commentsCount || 0) > (item.comments || []).length);
+  const [loadingMoreComments, setLoadingMoreComments] = useState(false);
+  const [commentsError, setCommentsError] = useState("");
   const [newComment, setNewComment] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
@@ -158,21 +163,6 @@ const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
 
   const isOwnItem = item.user?.id === currentUserId;
 
-  useEffect(() => {
-    let active = true;
-    config
-      .fetchComments(item.id)
-      .then((response) => {
-        if (active) setComments(response?.items || []);
-      })
-      .catch(() => {
-        if (active) setComments([]);
-      });
-    return () => {
-      active = false;
-    };
-  }, [item.id, config]);
-
   // Close the action menu on outside click.
   useEffect(() => {
     if (!actionMenuOpen) return;
@@ -186,7 +176,7 @@ const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
   }, [actionMenuOpen]);
 
   const captionChunks = useMemo(() => splitCaption(item.caption || ""), [item.caption]);
-  const totalComments = Math.max(item.commentsCount ?? 0, comments.length);
+  const totalComments = Math.max(commentsCount, comments.length);
 
   const handleLikeToggle = async () => {
     if (likeLoading) return;
@@ -203,6 +193,26 @@ const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
     }
   };
 
+  const handleLoadMoreComments = async () => {
+    if (loadingMoreComments || !hasMoreComments) return;
+    setLoadingMoreComments(true);
+    try {
+      const response = await config.fetchComments(item.id, commentsPage + 1, 3);
+      const nextComments = response?.items || [];
+      setComments((current) => [
+        ...current,
+        ...nextComments.filter((comment) => !current.some((existing) => existing.id === comment.id)),
+      ]);
+      setCommentsPage(response?.pagination?.page || commentsPage + 1);
+      setHasMoreComments(Boolean(response?.pagination?.hasNextPage));
+      setCommentsError("");
+    } catch (loadError) {
+      setCommentsError(loadError.message || "Unable to load more comments.");
+    } finally {
+      setLoadingMoreComments(false);
+    }
+  };
+
   const handleAddComment = async () => {
     const content = newComment.trim();
     if (!content || commentLoading) return;
@@ -211,6 +221,7 @@ const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
     try {
       const response = await config.addComment(item.id, content);
       setComments((current) => [response, ...current]);
+      setCommentsCount((current) => current + 1);
       setNewComment("");
     } catch {
       // keep the typed comment on failure so the user can retry
@@ -450,6 +461,17 @@ const FeedCard = ({ type, item, currentUserId, onDelete, onEdit }) => {
                 </div>
               ) : (
                 <p className="text-xs text-gray-500">No comments yet.</p>
+              )}
+              {commentsError && <p className="mt-3 text-xs text-red-500">{commentsError}</p>}
+              {hasMoreComments && (
+                <button
+                  type="button"
+                  onClick={handleLoadMoreComments}
+                  disabled={loadingMoreComments}
+                  className="mt-3 text-xs font-semibold text-blue-600 disabled:opacity-60"
+                >
+                  {loadingMoreComments ? "Loading..." : "Load more comments"}
+                </button>
               )}
             </div>
 

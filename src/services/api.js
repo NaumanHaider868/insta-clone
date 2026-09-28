@@ -92,16 +92,53 @@ export const registerUser = async ({ userName, firstName, lastName, email, passw
   });
 };
 
+export const verifyEmail = async (token) => {
+  return apiRequest("/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+};
+
 export const fetchHomeFeed = async () => {
   return apiRequest("/posts/feed");
+};
+
+export const fetchStories = async () => {
+  return apiRequest("/stories/feed");
+};
+
+export const createStory = async ({ type, file, text, background }) => {
+  if (type === "TEXT") {
+    return apiRequest("/stories", {
+      method: "POST",
+      body: JSON.stringify({ type, text, background }),
+    });
+  }
+
+  const allowedTypes = type === "IMAGE" ? IMAGE_TYPES : VIDEO_TYPES;
+  validateFile(file, allowedTypes, type.toLowerCase());
+  const formData = new FormData();
+  formData.append("type", type);
+  formData.append("media", file);
+  if (text) formData.append("text", text);
+  return apiRequest("/stories", { method: "POST", body: formData });
+};
+
+export const markStoryViewed = async (storyId) => {
+  return apiRequest(`/stories/${storyId}/view`, { method: "POST" });
+};
+
+export const fetchStoryViewers = async (storyId) => {
+  return apiRequest(`/stories/${storyId}/views`);
 };
 
 export const fetchReelsFeed = async (page = 1, limit = 10) => {
   return apiRequest(`/reels/feed?page=${page}&limit=${limit}`);
 };
 
-export const fetchSuggestions = async () => {
-  return apiRequest("/user/suggestions");
+export const fetchSuggestions = async (page = 1, limit = 5, offset) => {
+  const offsetQuery = offset === undefined ? "" : `&offset=${offset}`;
+  return apiRequest(`/user/suggestions?page=${page}&limit=${limit}${offsetQuery}`);
 };
 
 export const fetchChatConversations = async () => {
@@ -127,11 +164,11 @@ export const fetchUserProfile = async (userId) => {
   return apiRequest(`/user/profile/${userId}`);
 };
 
-export const fetchUserPosts = async (userId, page = 1, limit = 100) => {
-  return apiRequest(`/posts/user/${userId}?page=${page}&limit=${limit}`);
+export const fetchUserPosts = async (page = 1, limit = 10) => {
+  return apiRequest(`/posts/user?page=${page}&limit=${limit}`);
 };
 
-export const fetchUserReels = async (userId, page = 1, limit = 100) => {
+export const fetchUserReels = async (userId, page = 1, limit = 10) => {
   return apiRequest(`/reels/user/${userId}?page=${page}&limit=${limit}`);
 };
 
@@ -153,6 +190,26 @@ export const updateUserProfile = async ({ profile, image, removeImage = false })
 
 export const followUser = async (userId) => {
   return apiRequest(`/follow/${userId}`, { method: "POST" });
+};
+
+export const fetchNotifications = async (page = 1, limit = 20) => {
+  return apiRequest(`/notifications?page=${page}&limit=${limit}`);
+};
+
+export const markNotificationRead = async (notificationId) => {
+  return apiRequest(`/notifications/${notificationId}/read`, { method: "PATCH" });
+};
+
+export const markAllNotificationsRead = async () => {
+  return apiRequest("/notifications/read-all", { method: "PATCH" });
+};
+
+export const fetchFollowers = async (userId, page = 1, limit = 20) => {
+  return apiRequest(`/follow/followers/${userId}?page=${page}&limit=${limit}`);
+};
+
+export const fetchFollowing = async (userId, page = 1, limit = 20) => {
+  return apiRequest(`/follow/following/${userId}?page=${page}&limit=${limit}`);
 };
 
 export const toggleLikePost = async (postId, isLiked) => {
@@ -250,4 +307,8 @@ export const updateReel = async ({ reelId, caption, videos, retainedMediaIds }) 
 
 export const deleteReel = async (reelId) => {
   return apiRequest(`/reels/${reelId}`, { method: "DELETE" });
+};
+
+export const deletePost = async (postId) => {
+  return apiRequest(`/posts/${postId}`, { method: "DELETE" });
 };

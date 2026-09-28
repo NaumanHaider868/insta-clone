@@ -1,17 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../assets/css/style.scss";
 import { Drawer } from "@mui/material";
 import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut, FiPlus } from 'react-icons/fi';
+import { io } from "socket.io-client";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import user19 from "../../assets/images/users-imgs/user19.jpeg";
-import user12 from "../../assets/images/users-imgs/user12.jpeg";
-import user14 from "../../assets/images/users-imgs/user14.jpeg";
-import user5 from "../../assets/images/users-imgs/user5.jpeg";
-import user13 from "../../assets/images/users-imgs/user13.jpeg";
-import user10 from "../../assets/images/users-imgs/user10.jpeg";
-import user11 from "../../assets/images/users-imgs/user11.jpeg";
 import SearchIconDefault from "../../assets/images/action-icons/search-default.svg";
 import SearchIcon from "../../assets/images/action-icons/search.svg";
 import HomeIcon from "../../assets/images/action-icons/home.svg";
@@ -26,61 +20,86 @@ import MsgIcon from "../../assets/images/action-icons/msg.svg";
 import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
-import { clearSession } from "../../services/api";
+import {
+  clearSession,
+  fetchNotifications,
+  followUser,
+  getStoredSession,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "../../services/api";
 import UploadModal from "./HomeComponents/UploadModal";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+const notificationMessage = (type) => {
+  switch (type) {
+    case "FOLLOW": return "started following you.";
+    case "LIKE_POST": return "liked your post.";
+    case "LIKE_REEL": return "liked your reel.";
+    case "COMMENT_POST": return "commented on your post.";
+    case "COMMENT_REEL": return "commented on your reel.";
+    case "MESSAGE": return "sent you a message.";
+    default: return "sent you a notification.";
+  }
+};
+
+const notificationTime = (value) => {
+  const elapsedMinutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+  if (!Number.isFinite(elapsedMinutes) || elapsedMinutes < 1) return "now";
+  if (elapsedMinutes < 60) return `${elapsedMinutes}m`;
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `${elapsedHours}h`;
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  return elapsedDays < 7 ? `${elapsedDays}d` : new Date(value).toLocaleDateString();
+};
 
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const { token } = getStoredSession();
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState("");
+  const [followingBack, setFollowingBack] = useState([]);
 
-  const notifications = [
-    {
-      id: 1,
-      time: "Today",
-      profileImage: user19,
-      user: "shinkiro96",
-      message: "haroonhpanezai, and 9 others liked your comment: Rich army of poor country",
-      timeAgo: "8h",
-      postImage: user10,
-    },
-    {
-      id: 2,
-      time: "This week",
-      profileImage: user12,
-      user: "_im_abdurrehman67",
-      message: "and nomi_43e3 liked your story.",
-      timeAgo: "1d",
-      postImage: user11,
-    },
-    {
-      id: 3,
-      time: "This week",
-      profileImage: user14,
-      user: "irfanbarkati4",
-      message: "started following you.",
-      timeAgo: "2d",
-      action: "Follow",
-    },
-    {
-      id: 4,
-      time: "This month",
-      profileImage: user5,
-      user: "ramzanabibi1",
-      message: "who you might know, is on Instagram.",
-      timeAgo: "1w",
-      action: "Follow",
-    },
-    {
-      id: 5,
-      time: "This month",
-      profileImage: user13,
-      user: "365codingdays",
-      message: "liked your comment: What should learn for backend 'python' or 'express Js'.",
-      timeAgo: "1w",
-    },
-  ];
+  useEffect(() => {
+    if (!token) {
+      setNotificationsLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    const socket = io(API_BASE_URL, { auth: { token }, withCredentials: true });
+    const handleNewNotification = (notification) => {
+      setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
+      if (!notification.isRead) setUnreadCount((count) => count + 1);
+    };
+    socket.on("notification:new", handleNewNotification);
+
+    fetchNotifications(1, 50)
+      .then((response) => {
+        if (!active) return;
+        setNotifications(response?.items || []);
+        setUnreadCount(response?.unreadCount || 0);
+        setNotificationsError("");
+      })
+      .catch((error) => {
+        if (active) setNotificationsError(error.message || "Unable to load notifications.");
+      })
+      .finally(() => {
+        if (active) setNotificationsLoading(false);
+      });
+
+    return () => {
+      active = false;
+      socket.off("notification:new", handleNewNotification);
+      socket.disconnect();
+    };
+  }, [token]);
   const toggleDrawer = (open) => (event) => {
     if (
       event.type === 'keydown' &&
@@ -105,6 +124,36 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     clearSession();
     window.dispatchEvent(new Event('storage'));
     navigate('/login', { replace: true });
+  };
+
+  const handleMarkRead = async (notification) => {
+    if (notification.isRead) return;
+    setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, isRead: true } : item));
+    setUnreadCount((count) => Math.max(0, count - 1));
+    try {
+      await markNotificationRead(notification.id);
+    } catch (error) {
+      setNotificationsError(error.message || "Unable to mark notification as read.");
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      setNotificationsError(error.message || "Unable to mark notifications as read.");
+    }
+  };
+
+  const handleFollowBack = async (actorId) => {
+    try {
+      await followUser(actorId);
+      setFollowingBack((current) => [...new Set([...current, actorId])]);
+    } catch (error) {
+      setNotificationsError(error.message || "Unable to follow this user.");
+    }
   };
 
   return (
@@ -156,12 +205,9 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
           >
             <FiPlus size={24} />
           </button>
-          <button className={`p-2`} onClick={() => setIsOpen(true)}>
-            {isOpen ? (
-              <img src={LikeIcon} className="w-6 h-6 text-gray-700 dark:!text-white" />
-            ) : (
-              <img src={LikeIconDefault} className="w-6 h-6 text-gray-700 dark:!text-white" />
-            )}
+          <button type="button" className="relative p-2" onClick={() => setIsOpen(true)} aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`} title="Notifications">
+            <img src={isOpen ? LikeIcon : LikeIconDefault} className="h-6 w-6 text-gray-700 dark:!text-white" />
+            {unreadCount > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">{unreadCount > 9 ? "9+" : unreadCount}</span>}
           </button>
           <button className={`p-2`}>
             <Link to="/profile">
@@ -223,41 +269,35 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
             className="notification-drawer-w"
           >
             <div className="text-black dark:text-white p-4 notification-sideDrawer mx-auto">
-              <div className="flex items-center mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 {isMobile && (
                   <button className="mr-4" onClick={toggleDrawer(false)}>
                     <i className="fas fa-arrow-left dark:text-white"></i>
                   </button>
                 )}
                 <h2 className="text-2xl font-bold">Notifications</h2>
+                {unreadCount > 0 && <button type="button" onClick={handleMarkAllRead} className="text-sm font-semibold text-blue-600 dark:text-blue-400">Mark all read</button>}
               </div>
-
-              {notifications.map((item) => (
-                <div key={item.id} className="mb-6">
-                  {item.id === 1 || (notifications[item.id - 2]?.time !== item.time) ? (
-                    <h3 className="text-lg font-semibold mb-2">{item.time}</h3>
-                  ) : null}
-
-                  <div className="flex items-start space-x-4">
-                    <div className="rounded-full w-10 h-10">
-                      <img src={item.profileImage} alt="profile" className="w-full h-full" />
-                    </div>
-
-                    <div className="flex-grow">
-                      <p><span className="font-bold">{item.user}</span> {item.message}</p>
-                      <span className="text-gray-400 text-sm">{item.timeAgo}</span>
-                    </div>
-
-                    {item.postImage && (
-                      <img src={item.postImage} alt="post" className="w-12 h-12 rounded-md" />
-                    )}
-
-                    {item.action && (
-                      <button className="bg-blue-500 text-white py-1 px-4 rounded-full">
-                        {item.action}
-                      </button>
-                    )}
-                  </div>
+              {notificationsError && <p role="alert" className="mb-3 text-sm text-red-500">{notificationsError}</p>}
+              {notificationsLoading ? (
+                <p className="py-8 text-center text-sm text-gray-500">Loading notifications...</p>
+              ) : notifications.length === 0 ? (
+                <p className="py-8 text-center text-sm text-gray-500">You have no notifications yet.</p>
+              ) : notifications.map((item) => (
+                <div key={item.id} className={`mb-2 flex items-start gap-3 rounded-lg p-3 ${item.isRead ? "" : "bg-blue-50 dark:bg-white/5"}`}>
+                  <button type="button" onClick={() => handleMarkRead(item)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
+                    <img src={item.actor?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.actor?.userName || "User")}`} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm"><strong>{item.actor?.userName || "Someone"}</strong> {notificationMessage(item.type)}</span>
+                      <span className="mt-1 block text-xs text-gray-500">{notificationTime(item.createdAt)}</span>
+                    </span>
+                    {!item.isRead && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-600" aria-label="Unread" />}
+                  </button>
+                  {item.type === "FOLLOW" && (
+                    <button type="button" onClick={() => handleFollowBack(item.actorId)} disabled={followingBack.includes(item.actorId)} className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white disabled:bg-gray-400">
+                      {followingBack.includes(item.actorId) ? "Following" : "Follow back"}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

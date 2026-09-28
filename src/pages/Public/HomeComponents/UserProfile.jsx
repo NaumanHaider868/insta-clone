@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaCamera, FaChevronLeft, FaChevronRight, FaComment, FaEdit, FaHeart, FaPlane, FaPlaneDeparture, FaPlay, FaRegHeart, FaTimes, FaTrash } from 'react-icons/fa';
+import UploadModal from './UploadModal';
 import {
     addPostComment,
     addReelComment,
     fetchPostComments,
     fetchReelComments,
+    fetchFollowers,
+    fetchFollowing,
     fetchUserPosts,
     fetchUserProfile,
     fetchUserReels,
     getStoredSession,
+    deletePost,
+    deleteReel,
     toggleLikePost,
     toggleLikeReel,
     updateUserProfile,
@@ -86,6 +91,108 @@ const AvatarConfirmation = ({ action, profile, saving, onCancel, onConfirm }) =>
     );
 };
 
+const ProfileConnectionsModal = ({ userId, initialTab, onClose }) => {
+    const [activeTab, setActiveTab] = useState(initialTab);
+    const [users, setUsers] = useState([]);
+    const [page, setPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        let active = true;
+        setUsers([]);
+        setPage(1);
+        setHasNextPage(false);
+        setLoading(true);
+        setError('');
+        const fetchConnections = activeTab === 'followers' ? fetchFollowers : fetchFollowing;
+        fetchConnections(userId, 1, 20)
+            .then((response) => {
+                if (!active) return;
+                setUsers(response?.items || []);
+                setPage(response?.pagination?.page || 1);
+                setHasNextPage(Boolean(response?.pagination?.hasNextPage));
+            })
+            .catch((loadError) => {
+                if (active) setError(loadError.message || `Unable to load ${activeTab}.`);
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => { active = false; };
+    }, [activeTab, userId]);
+
+    useEffect(() => {
+        const closeOnEscape = (event) => {
+            if (event.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', closeOnEscape);
+        return () => window.removeEventListener('keydown', closeOnEscape);
+    }, [onClose]);
+
+    const loadMore = async () => {
+        if (loadingMore || !hasNextPage) return;
+        setLoadingMore(true);
+        setError('');
+        const fetchConnections = activeTab === 'followers' ? fetchFollowers : fetchFollowing;
+        try {
+            const response = await fetchConnections(userId, page + 1, 20);
+            setUsers((current) => [...current, ...(response?.items || [])]);
+            setPage(response?.pagination?.page || page + 1);
+            setHasNextPage(Boolean(response?.pagination?.hasNextPage));
+        } catch (loadError) {
+            setError(loadError.message || `Unable to load more ${activeTab}.`);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4" onMouseDown={onClose}>
+            <section role="dialog" aria-modal="true" aria-label="Profile connections" onMouseDown={(event) => event.stopPropagation()} className="flex max-h-[min(620px,85vh)] w-full max-w-md flex-col overflow-hidden rounded-xl bg-white text-gray-900 shadow-2xl dark:bg-[#1d1d1d] dark:text-white">
+                <header className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+                    <h2 className="text-base font-semibold">{activeTab === 'followers' ? 'Followers' : 'Following'}</h2>
+                    <button type="button" onClick={onClose} aria-label="Close connections" className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"><FaTimes /></button>
+                </header>
+                <div className="grid grid-cols-2 border-b border-gray-200 dark:border-gray-700">
+                    {['followers', 'following'].map((tab) => (
+                        <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`border-b-2 px-4 py-3 text-sm font-semibold capitalize ${activeTab === tab ? 'border-blue-500 text-blue-600 dark:text-white' : 'border-transparent text-gray-500'}`}>
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5">
+                    {error && <p role="alert" className="py-3 text-sm text-red-500">{error}</p>}
+                    {loading ? (
+                        <p className="py-8 text-center text-sm text-gray-500">Loading {activeTab}...</p>
+                    ) : users.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-gray-500">No {activeTab} yet.</p>
+                    ) : (
+                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {users.map((user) => (
+                                <li key={user.id} className="flex items-center gap-3 py-3">
+                                    <img src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || 'User')}`} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-semibold">{user.userName}</p>
+                                        <p className="truncate text-sm text-gray-500 dark:text-gray-400">{`${user.firstName || ''} ${user.lastName || ''}`.trim()}</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {hasNextPage && !loading && (
+                        <button type="button" onClick={loadMore} disabled={loadingMore} className="my-4 w-full rounded-md border border-gray-300 py-2 text-sm font-semibold hover:bg-gray-50 disabled:opacity-60 dark:border-gray-600 dark:hover:bg-white/10">
+                            {loadingMore ? 'Loading...' : 'Load more'}
+                        </button>
+                    )}
+                </div>
+            </section>
+        </div>
+    );
+};
+
 const ProfileExpandableText = ({ content }) => {
     const [expanded, setExpanded] = useState(false);
     const [overflow, setOverflow] = useState(false);
@@ -109,7 +216,7 @@ const ProfileExpandableText = ({ content }) => {
     );
 };
 
-const ProfileContentModal = ({ item, type, onClose }) => {
+const ProfileContentModal = ({ item, type, onClose, onEdit, onDelete, canManage }) => {
     const media = type === 'reel'
         ? (item.media?.length ? item.media : [{ url: item.videoUrl }])
         : (item.media || []);
@@ -237,6 +344,12 @@ const ProfileContentModal = ({ item, type, onClose }) => {
                     <div className="flex items-center gap-3 border-b border-gray-200 pb-4 dark:border-gray-700">
                         <img src={item.user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}`} alt="" className="h-10 w-10 rounded-full object-cover" />
                         <div><p className="text-sm font-semibold">{userName}</p><p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p></div>
+                        {canManage && (
+                            <div className="ml-auto flex items-center gap-2 pr-8">
+                                <button type="button" title={`Edit ${type}`} aria-label={`Edit ${type}`} onClick={onEdit} className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"><FaEdit /></button>
+                                <button type="button" title={`Delete ${type}`} aria-label={`Delete ${type}`} onClick={onDelete} className="rounded-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><FaTrash /></button>
+                            </div>
+                        )}
                     </div>
                     {item.caption && (
                         <div className="max-h-32 shrink-0 overflow-y-auto py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -289,13 +402,18 @@ const UserProfile = () => {
     const [profile, setProfile] = useState(null);
     const [posts, setPosts] = useState([]);
     const [reels, setReels] = useState([]);
+    const [reelsLoaded, setReelsLoaded] = useState(false);
+    const [tabLoading, setTabLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [editorOpen, setEditorOpen] = useState(false);
     const [selectedContent, setSelectedContent] = useState(null);
+    const [editingItem, setEditingItem] = useState(null);
+    const [connectionsModal, setConnectionsModal] = useState(null);
     const [avatarAction, setAvatarAction] = useState(null);
     const [avatarSaving, setAvatarSaving] = useState(false);
     const avatarInputRef = useRef(null);
+    const reelsRequestStarted = useRef(false);
 
     useEffect(() => {
         if (!userId) {
@@ -305,31 +423,92 @@ const UserProfile = () => {
         }
         let active = true;
         const loadProfile = async () => {
-            try {
-                const [profileData, postsData, reelsData] = await Promise.all([
+            const [profileResult, postsResult] = await Promise.allSettled([
                     fetchUserProfile(userId),
-                    fetchUserPosts(userId),
-                    fetchUserReels(userId),
-                ]);
-                if (!active) return;
-                setProfile(profileData);
-                setPosts(postsData?.items || []);
-                setReels(reelsData?.items || []);
+                    fetchUserPosts(),
+            ]);
+            if (!active) return;
+
+            if (profileResult.status === 'fulfilled') {
+                setProfile(profileResult.value);
                 setError('');
-            } catch (loadError) {
-                if (active) setError(loadError.message || 'Unable to load profile.');
-            } finally {
-                if (active) setLoading(false);
+            } else {
+                setError(profileResult.reason.message || 'Unable to load profile.');
             }
+
+            if (postsResult.status === 'fulfilled') {
+                setPosts(postsResult.value?.items || []);
+            } else if (profileResult.status === 'fulfilled') {
+                setError(postsResult.reason.message || 'Unable to load posts.');
+            }
+            setLoading(false);
         };
         loadProfile();
         return () => { active = false; };
     }, [userId]);
 
+    useEffect(() => {
+        if (activeTab !== 'Reels' || !userId || !profile || reelsLoaded || reelsRequestStarted.current) return;
+        if ((profile._count?.reels ?? 0) === 0) {
+            setReelsLoaded(true);
+            return;
+        }
+        reelsRequestStarted.current = true;
+        setTabLoading(true);
+        fetchUserReels(userId)
+            .then((reelsData) => {
+                setReels(reelsData?.items || []);
+                setReelsLoaded(true);
+                setError('');
+            })
+            .catch((loadError) => {
+                reelsRequestStarted.current = false;
+                setError(loadError.message || 'Unable to load reels.');
+            })
+            .finally(() => setTabLoading(false));
+    }, [activeTab, profile, reelsLoaded, userId]);
+
     const saveProfile = async (values) => {
         const updatedProfile = await updateUserProfile(values);
         setProfile(updatedProfile);
         setEditorOpen(false);
+    };
+
+    const refreshProfileContent = async (type) => {
+        try {
+            if (type === 'reel') {
+                const response = await fetchUserReels(userId);
+                setReels(response?.items || []);
+            } else {
+                const response = await fetchUserPosts();
+                setPosts(response?.items || []);
+            }
+        } catch (refreshError) {
+            setError(refreshError.message || 'Unable to refresh profile content.');
+        }
+    };
+
+    const handleDeleteContent = async (item, type) => {
+        if (!window.confirm(`Delete this ${type}?`)) return;
+        try {
+            if (type === 'reel') {
+                await deleteReel(item.id);
+                setReels((current) => current.filter((reel) => reel.id !== item.id));
+            } else {
+                await deletePost(item.id);
+                setPosts((current) => current.filter((post) => post.id !== item.id));
+            }
+            setProfile((current) => current ? {
+                ...current,
+                _count: {
+                    ...current._count,
+                    [type === 'reel' ? 'reels' : 'posts']: Math.max(0, (current._count?.[type === 'reel' ? 'reels' : 'posts'] || 0) - 1),
+                },
+            } : current);
+            setSelectedContent(null);
+        } catch (deleteError) {
+            setError(deleteError.message || `Unable to delete ${type}.`);
+        }
     };
 
     const confirmAvatarAction = async () => {
@@ -433,14 +612,14 @@ const UserProfile = () => {
                                         <span className="font-bold text-[14px] dark:text-white">{(profile?._count?.posts ?? 0) + (profile?._count?.reels ?? 0)}</span>
                                         <p className="text-sm text-gray-500 dark:text-white">Posts</p>
                                     </div>
-                                    <div className="text-center flex items-center gap-[6px] cursor-pointer">
+                                    <button type="button" onClick={() => setConnectionsModal('followers')} className="text-center flex items-center gap-[6px] cursor-pointer">
                                         <span className="font-bold text-[14px] dark:text-white">{profile?._count?.followers ?? 0}</span>
                                         <p className="text-sm text-gray-500 dark:text-white">Followers</p>
-                                    </div>
-                                    <div className="text-center flex items-center gap-[6px] cursor-pointer">
+                                    </button>
+                                    <button type="button" onClick={() => setConnectionsModal('following')} className="text-center flex items-center gap-[6px] cursor-pointer">
                                         <span className="font-bold text-[14px] dark:text-white">{profile?._count?.following ?? 0}</span>
                                         <p className="text-sm text-gray-500 dark:text-white">Following</p>
-                                    </div>
+                                    </button>
                                 </div>
 
                                 {profile?.profile && <p className="whitespace-pre-wrap break-words text-sm text-gray-700 dark:text-gray-200">{profile.profile}</p>}
@@ -463,7 +642,11 @@ const UserProfile = () => {
                                         className={`flex items-center space-x-2 text-sm ${activeTab === name ? 'text-blue-600 dark:text-white underline font-bold' : 'text-gray-500 dark:text-white font-medium'}`}
                                     >
                                         {icon}
-                                        <span>{name}</span>
+                                        <span>
+                                            {name}
+                                            {profile && name === 'Posts' && ` (${profile._count?.posts ?? 0})`}
+                                            {profile && name === 'Reels' && ` (${profile._count?.reels ?? 0})`}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
@@ -473,6 +656,8 @@ const UserProfile = () => {
                                     <p className="py-10 text-center text-sm text-gray-500">Loading profile...</p>
                                 ) : activeTab === 'Saved' ? (
                                     <p className="py-10 text-center text-sm text-gray-500">Saved posts are not available yet.</p>
+                                ) : tabLoading ? (
+                                    <p className="py-10 text-center text-sm text-gray-500">Loading reels...</p>
                                 ) : filteredData.length === 0 ? (
                                     <p className="py-10 text-center text-sm text-gray-500">No {activeTab.toLowerCase()} yet.</p>
                                 ) : (
@@ -508,7 +693,24 @@ const UserProfile = () => {
             </div>
             {editorOpen && profile && <ProfileEditor profile={profile} onClose={() => setEditorOpen(false)} onSave={saveProfile} />}
             {avatarAction && profile && <AvatarConfirmation action={avatarAction} profile={profile} saving={avatarSaving} onCancel={() => !avatarSaving && setAvatarAction(null)} onConfirm={confirmAvatarAction} />}
-            {selectedContent && <ProfileContentModal key={`${selectedContent.type}-${selectedContent.item.id}`} item={selectedContent.item} type={selectedContent.type} onClose={() => setSelectedContent(null)} />}
+            {selectedContent && <ProfileContentModal
+                key={`${selectedContent.type}-${selectedContent.item.id}`}
+                item={selectedContent.item}
+                type={selectedContent.type}
+                canManage={selectedContent.item.user?.id === userId}
+                onClose={() => setSelectedContent(null)}
+                onEdit={() => {
+                    setEditingItem({ ...selectedContent.item, contentType: selectedContent.type });
+                    setSelectedContent(null);
+                }}
+                onDelete={() => handleDeleteContent(selectedContent.item, selectedContent.type)}
+            />}
+            {editingItem && <UploadModal
+                editItem={editingItem}
+                onClose={() => setEditingItem(null)}
+                onSaved={refreshProfileContent}
+            />}
+            {connectionsModal && <ProfileConnectionsModal userId={userId} initialTab={connectionsModal} onClose={() => setConnectionsModal(null)} />}
         </div>
     );
 };

@@ -16,7 +16,7 @@ const validateFile = (file, types, label) => {
   }
 };
 
-const UploadModal = ({ onClose, editItem = null }) => {
+const UploadModal = ({ onClose, editItem = null, onSaved }) => {
   const [mode, setMode] = useState(editItem?.contentType === "reel" ? "reel" : "post");
   const [caption, setCaption] = useState(editItem?.caption || "");
   const [retainedMedia, setRetainedMedia] = useState(editItem?.media || []);
@@ -70,8 +70,8 @@ const UploadModal = ({ onClose, editItem = null }) => {
     if (selected.length === 0) return;
     try {
       selected.forEach((file) => validateFile(file, VIDEO_TYPES, "video"));
-      if (retainedMedia.length + videos.length + selected.length > 10) {
-        throw new Error("A reel can contain at most 10 videos.");
+      if (retainedMedia.length + videos.length + selected.length > 1) {
+        throw new Error("A reel can contain only one video.");
       }
       setError("");
       setVideos((current) => [
@@ -110,6 +110,10 @@ const UploadModal = ({ onClose, editItem = null }) => {
       setError("Select at least one video for your reel.");
       return;
     }
+    if (mode === "reel" && retainedMedia.length + videos.length > 1) {
+      setError("A reel can contain only one video.");
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -137,6 +141,7 @@ const UploadModal = ({ onClose, editItem = null }) => {
         }
       }
       window.dispatchEvent(new Event("instagram:content-created"));
+      onSaved?.(mode);
       previewUrls.current.forEach((preview) => URL.revokeObjectURL(preview));
       previewUrls.current.clear();
       onClose();
@@ -215,9 +220,9 @@ const UploadModal = ({ onClose, editItem = null }) => {
             <>
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 p-6 text-center hover:border-gray-500 dark:border-gray-600">
                 <FiUpload size={28} className="mb-2 text-gray-500" />
-                <span className="text-sm font-semibold">{editItem ? "Add videos" : "Choose one or more videos"}</span>
+                <span className="text-sm font-semibold">{editItem ? "Replace video" : "Choose one video"}</span>
                 <span className="mt-1 text-xs text-gray-500">MP4, MOV, WEBM, or MKV, up to 10 MB each</span>
-                <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska" multiple className="hidden" onChange={addVideo} disabled={isUploading || retainedMedia.length + videos.length >= 10} />
+                <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska" className="hidden" onChange={addVideo} disabled={isUploading || retainedMedia.length + videos.length >= 1} />
               </label>
               {retainedMedia.length + videos.length > 0 && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">

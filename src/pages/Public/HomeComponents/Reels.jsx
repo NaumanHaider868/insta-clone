@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
-import { FaHeart, FaComment, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
+import { FaHeart, FaComment, FaPlane, FaPlaneDeparture, FaTimes, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
 import { FiShare2 } from "react-icons/fi";
 import {
   addReelComment,
@@ -68,7 +68,7 @@ const ReelsPage = () => {
     if (reels.length === 0) return;
 
     if (direction === "up") {
-      setCurrentReelIndex((index) => (index === 0 ? reels.length - 1 : index - 1));
+      setCurrentReelIndex((index) => Math.max(0, index - 1));
       return;
     }
 
@@ -83,7 +83,6 @@ const ReelsPage = () => {
       return;
     }
 
-    setCurrentReelIndex(0);
   }, [currentReelIndex, hasNextPage, loadMoreReels, reels.length]);
 
   useEffect(() => {
@@ -136,6 +135,7 @@ const Reel = ({ reel }) => {
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState("");
   const [liked, setLiked] = useState(Boolean(reel.isLiked));
   const [likesCount, setLikesCount] = useState(reel.likesCount || 0);
   const [commentsCount, setCommentsCount] = useState(reel.commentsCount || 0);
@@ -153,6 +153,15 @@ const Reel = ({ reel }) => {
   useEffect(() => {
     if (commentOpen) loadComments();
   }, [commentOpen, loadComments]);
+
+  useEffect(() => {
+    if (!commentOpen) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setCommentOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [commentOpen]);
 
   const handleLikeToggle = async () => {
     if (likeLoading) return;
@@ -173,13 +182,14 @@ const Reel = ({ reel }) => {
     const content = commentInput.trim();
     if (!content || commentLoading) return;
     setCommentLoading(true);
+    setCommentsError("");
     try {
       const response = await addReelComment(reel.id, content);
       setComments((current) => [response, ...current]);
       setCommentsCount((current) => current + 1);
       setCommentInput("");
-    } catch {
-      return;
+    } catch (error) {
+      setCommentsError(error.message || "Unable to add comment.");
     } finally {
       setCommentLoading(false);
     }
@@ -199,14 +209,21 @@ const Reel = ({ reel }) => {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        setShareMessage("Shared");
       } else {
-        await navigator.clipboard.writeText(url);
+        await copyShareUrl(url);
         setShareMessage("Link copied");
-        window.setTimeout(() => setShareMessage(""), 1800);
       }
-    } catch {
-      setShareMessage("");
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      try {
+        await copyShareUrl(url);
+        setShareMessage("Link copied");
+      } catch {
+        setShareMessage("Unable to share");
+      }
     }
+    window.setTimeout(() => setShareMessage(""), 1800);
   };
 
   return (
@@ -251,51 +268,144 @@ const Reel = ({ reel }) => {
       </div>
 
       {commentOpen && (
-        <div className="absolute bottom-24 left-1/2 z-30 w-[330px] -translate-x-1/2 rounded-xl border border-gray-700 bg-black/80 p-3 text-white backdrop-blur-sm">
-          <div className="max-h-40 space-y-2 overflow-y-auto">
+        <div className="absolute bottom-24 left-1/2 z-30 flex max-h-[55vh] w-[min(360px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-xl border border-gray-200 bg-white p-4 text-gray-900 shadow-xl dark:border-gray-700 dark:bg-[#1d1d1d] dark:text-white">
+          <div className="mb-3 flex shrink-0 items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
+            <h2 className="text-sm font-semibold">Comments</h2>
+            <button type="button" onClick={() => setCommentOpen(false)} aria-label="Close comments" title="Close comments" className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10">
+              <FaTimes />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto text-sm">
             {comments.length === 0 ? (
-              <p className="text-xs text-gray-300">No comments yet.</p>
+              <p className="text-xs text-gray-500">No comments yet.</p>
             ) : (
               comments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-2 text-xs">
-                  <img src={comment.user?.profileImage || "https://ui-avatars.com/api/?name=" + encodeURIComponent(comment.user?.userName || "User")} alt={comment.user?.userName || "User"} className="h-6 w-6 rounded-full" />
-                  <div>
-                    <span className="font-bold">{comment.user?.userName || "User"}</span>
-                    <span className="ml-2">{comment.content}</span>
+                <div key={comment.id} className="flex items-start">
+                  <img src={comment.user?.profileImage || "https://ui-avatars.com/api/?name=" + encodeURIComponent(comment.user?.userName || "User")} alt={comment.user?.userName || "User"} className="mr-3 h-8 w-8 shrink-0 rounded-full object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold">{comment.user?.userName || "User"}</p>
+                    <ReelCommentText content={comment.content} />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{formatDate(comment.createdAt)}</p>
                   </div>
                 </div>
               ))
             )}
           </div>
-          <div className="mt-3 flex gap-2">
+          {commentsError && <p className="mt-2 text-xs text-red-500">{commentsError}</p>}
+          <form onSubmit={(event) => { event.preventDefault(); handleCommentSubmit(); }} className="mt-3 flex h-10 shrink-0">
             <input
               value={commentInput}
               onChange={(event) => setCommentInput(event.target.value)}
-              className="h-9 flex-1 rounded-full border border-gray-600 bg-[#1a1a1a] px-3 text-xs text-white outline-none"
-              placeholder="Add a comment"
+              maxLength={1000}
+              aria-label="Add a comment"
+              className="min-w-0 flex-1 rounded-l-[10px] border border-gray-300 bg-white px-3 text-xs text-black outline-none dark:border-gray-600 dark:bg-transparent dark:text-white"
+              placeholder="Add a comment..."
             />
             <button
-              type="button"
-              onClick={handleCommentSubmit}
+              type="submit"
               disabled={commentLoading || !commentInput.trim()}
-              className="rounded-full bg-[#4c77e2] px-3 text-xs font-semibold text-white disabled:opacity-60"
+              aria-label={commentLoading ? "Posting comment" : "Post comment"}
+              className="comment-submit-button cursor-pointer rounded-r-[10px] px-3 text-xs font-semibold text-white disabled:opacity-60"
             >
-              {commentLoading ? "..." : "Post"}
+              {commentLoading ? <FaPlaneDeparture className="plane-departure-animation" /> : <FaPlane />}
             </button>
-          </div>
+          </form>
         </div>
       )}
     </div>
   );
 };
 
-const UserDetails = ({ username, description, profilePic, createdAt }) => {
+const ReelCommentText = ({ content }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [needsExpansion, setNeedsExpansion] = useState(false);
+  const textRef = useRef(null);
+
+  useEffect(() => {
+    const element = textRef.current;
+    if (!element || expanded) return undefined;
+
+    const measureOverflow = () => {
+      setNeedsExpansion(element.scrollHeight > element.clientHeight + 1);
+    };
+    measureOverflow();
+    const observer = new ResizeObserver(measureOverflow);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [content, expanded]);
+
   return (
-    <div className="flex items-center space-x-3">
-      <img src={profilePic} alt={username} className="w-10 h-10 rounded-full border-2 border-white" />
-      <div>
+    <div>
+      <p ref={textRef} className={`whitespace-pre-wrap break-words ${expanded ? "" : "line-clamp-3"}`}>
+        {content}
+      </p>
+      {needsExpansion && (
+        <button type="button" onClick={() => setExpanded((current) => !current)} className="mt-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+          {expanded ? "less" : "more"}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const copyShareUrl = async (url) => {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(url);
+      return;
+    } catch {
+      // Use the legacy copy command when clipboard permissions are unavailable.
+    }
+  }
+
+  const input = document.createElement("textarea");
+  input.value = url;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  const copied = document.execCommand("copy");
+  input.remove();
+  if (!copied) throw new Error("Clipboard access is unavailable");
+};
+
+const UserDetails = ({ username, description, profilePic, createdAt }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [needsExpansion, setNeedsExpansion] = useState(false);
+  const descriptionRef = useRef(null);
+
+  useEffect(() => {
+    const element = descriptionRef.current;
+    if (!element || expanded) return undefined;
+
+    const measureOverflow = () => {
+      setNeedsExpansion(element.scrollHeight > element.clientHeight + 1);
+    };
+    measureOverflow();
+
+    const observer = new ResizeObserver(measureOverflow);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [description, expanded]);
+
+  return (
+    <div className="flex items-start space-x-3">
+      <img src={profilePic} alt={username} className="h-10 w-10 shrink-0 rounded-full border-2 border-white" />
+      <div className="min-w-0">
         <p className="font-bold">{username}</p>
-        {description && <p className="text-sm text-gray-200">{description}</p>}
+        {description && (
+          <>
+            <p ref={descriptionRef} className={`mt-1 whitespace-pre-wrap break-words text-sm text-gray-200 ${expanded ? "" : "line-clamp-2"}`}>
+              {description}
+            </p>
+            {needsExpansion && (
+              <button type="button" onClick={() => setExpanded((current) => !current)} className="mt-1 text-xs font-semibold text-gray-300">
+                {expanded ? "less" : "more"}
+              </button>
+            )}
+          </>
+        )}
         <p className="text-[10px] text-gray-300">{formatDate(createdAt)}</p>
       </div>
     </div>
