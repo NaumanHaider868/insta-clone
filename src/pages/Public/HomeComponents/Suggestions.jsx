@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../../../assets/css/style.scss";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
+import { Link } from "react-router-dom";
 import { fetchSuggestions, followUser } from "../../../services/api";
 
 const Suggestions = () => {
@@ -66,7 +67,7 @@ const Suggestions = () => {
             <span className="text-[#919191] text-[15px] dark:text-white">
               Suggested For You:
             </span>
-            <a href="/see-all" className="dark:!text-white">See All</a>
+            <Link to="/see-all" className="dark:!text-white">See All</Link>
           </div>
           <div className="suggestions-list">
             {loading && <p className="px-3 py-4 text-sm text-gray-500">Loading suggestions...</p>}

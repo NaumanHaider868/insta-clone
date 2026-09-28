@@ -1,119 +1,102 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { FaPlus } from "react-icons/fa";
+import { fetchStories, getStoredSession } from "../../../services/api";
+import StoryComposer from "./StoryComposer";
+import StoryViewer from "./StoryViewer";
 import "../../../assets/css/style.scss";
 
-// Import images
-import user6 from "../../../assets/images/users-imgs/user6.jpg";
-import user19 from "../../../assets/images/users-imgs/user19.jpeg";
-import user10 from "../../../assets/images/users-imgs/user10.jpeg";
-import user12 from "../../../assets/images/users-imgs/user12.jpeg";
-import user11 from "../../../assets/images/users-imgs/user11.jpeg";
-import user14 from "../../../assets/images/users-imgs/user14.jpeg";
-import user5 from "../../../assets/images/users-imgs/user5.jpeg";
-import user13 from "../../../assets/images/users-imgs/user13.jpg";
-import user9 from "../../../assets/images/users-imgs/user9.jpeg";
-
-// Stories array
-const stories = [
-  { id: 1, imgSrc: user6, isUser: true },
-  { id: 2, imgSrc: user19, isUser: false },
-  { id: 3, imgSrc: user10, isUser: false },
-  { id: 4, imgSrc: user12, isUser: false },
-  { id: 5, imgSrc: user11, isUser: false },
-  { id: 6, imgSrc: user14, isUser: false },
-  { id: 7, imgSrc: user5, isUser: false },
-  { id: 8, imgSrc: user13, isUser: false },
-  { id: 9, imgSrc: user9, isUser: false },
-  { id: 10, imgSrc: user9, isUser: false },
-  { id: 11, imgSrc: user11, isUser: false },
-  { id: 12, imgSrc: user14, isUser: false },
-  { id: 13, imgSrc: user5, isUser: false },
-  { id: 14, imgSrc: user13, isUser: false },
-  { id: 15, imgSrc: user9, isUser: false },
-  { id: 16, imgSrc: user9, isUser: false },
-];
-const userStory = stories.find((story) => story.isUser);
-const otherStories = stories.filter((story) => !story.isUser);
-
 const StoryRow = () => {
-  const [open, setOpen] = useState(false)
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(9);
-  const containerRef = useRef(null);
+  const [currentUser] = useState(() => getStoredSession().user || {});
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
-  const calculateVisibleStories = () => {
-    if (containerRef.current) {
-      const containerWidth = containerRef.current.offsetWidth;
-      const storyWidth = 90;
-      const storiesToShow = Math.floor(containerWidth / storyWidth);
-      setVisibleCount(storiesToShow);
+  const loadStories = useCallback(async () => {
+    try {
+      const response = await fetchStories();
+      const receivedGroups = response?.items || [];
+      const ownGroup = receivedGroups.find((group) => group.user.id === currentUser.id) || {
+        user: currentUser,
+        stories: [],
+        isCurrentUser: true,
+        hasUnseen: false,
+      };
+      const otherGroups = receivedGroups
+        .filter((group) => group.user.id !== currentUser.id)
+        .sort((left, right) => Number(right.hasUnseen) - Number(left.hasUnseen));
+      setGroups([ownGroup, ...otherGroups]);
+      setError("");
+    } catch (loadError) {
+      setGroups([{
+        user: currentUser,
+        stories: [],
+        isCurrentUser: true,
+        hasUnseen: false,
+      }]);
+      setError(loadError.message || "Unable to load stories.");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [currentUser]);
 
   useEffect(() => {
-    calculateVisibleStories();
-    window.addEventListener("resize", calculateVisibleStories);
+    loadStories();
+  }, [loadStories]);
 
-    return () => {
-      window.removeEventListener("resize", calculateVisibleStories);
-    };
+  const markViewed = useCallback((storyId) => {
+    setGroups((current) => current.map((group) => {
+      const stories = group.stories.map((story) => story.id === storyId ? { ...story, viewed: true } : story);
+      return {
+        ...group,
+        stories,
+        hasUnseen: stories.some((story) => !story.viewed),
+      };
+    }));
   }, []);
 
-  const visibleStories = otherStories.slice(currentIndex, currentIndex + visibleCount);
-
-  const handleNext = () => {
-    if (currentIndex + visibleCount < otherStories.length) {
-      setCurrentIndex((prevIndex) => prevIndex + 5);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prevIndex) => prevIndex - 5);
-    }
+  const ownGroup = groups.find((group) => group.user.id === currentUser.id) || {
+    user: currentUser,
+    stories: [],
+    hasUnseen: false,
   };
 
   return (
-    <div className="story-row">
-      <div className="story-me">
-        {userStory && (
-          <div className="story relative">
-            <div className="new-story">
-              <img src={userStory.imgSrc} alt="Your story" />
-              <div className="add-story absolute w-[25px] h-[25px] bg-[#0095F6] rounded-full bottom-[-4px] right-[3px]">
-                <i className="plus-icon"></i>
+    <>
+      <div className="story-row">
+        <div className="story-me">
+          <div className="story relative flex flex-col items-center">
+            <button type="button" onClick={() => ownGroup.stories.length > 0 && setSelectedUserId(currentUser.id)} aria-label="View your story" className="relative">
+              <div className={`story-circle ${ownGroup.hasUnseen ? "" : "story-circle-seen"}`}>
+                <img src={ownGroup.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(ownGroup.user.userName || "You")}`} alt="Your profile" />
               </div>
-            </div>
+            </button>
+            <button type="button" onClick={() => setComposerOpen(true)} aria-label="Add story" title="Add story" className="add-story absolute bottom-7 right-0 grid h-6 w-6 place-items-center rounded-full border-2 border-white bg-[#0095F6] text-white dark:border-[#1d1d1d]">
+              <FaPlus size={11} />
+            </button>
+            <span className="mt-2 max-w-[78px] truncate text-xs text-gray-700 dark:text-gray-200">Your story</span>
           </div>
-        )}
+        </div>
+
+        <div className="other-users flex w-full gap-1 overflow-x-auto" aria-label="Stories from people you follow">
+          {loading && <p className="px-3 py-5 text-xs text-gray-500">Loading stories...</p>}
+          {!loading && groups.slice(1).map((group) => (
+            <button key={group.user.id} type="button" onClick={() => setSelectedUserId(group.user.id)} className="story relative flex flex-col items-center" aria-label={`View ${group.user.userName}'s story`}>
+              <div className={`story-circle ${group.hasUnseen ? "" : "story-circle-seen"}`}>
+                <img src={group.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(group.user.userName || "User")}`} alt={`${group.user.userName}'s profile`} />
+              </div>
+              <span className="mt-2 max-w-[78px] truncate text-xs text-gray-700 dark:text-gray-200">{group.user.userName}</span>
+            </button>
+          ))}
+          {!loading && !error && groups.length <= 1 && <p className="px-3 py-5 text-xs text-gray-500">No stories yet.</p>}
+          {error && <p role="alert" className="px-3 py-5 text-xs text-red-500">{error}</p>}
+        </div>
       </div>
 
-      <div className="other-users flex w-full relative" ref={containerRef}>
-        {currentIndex > 0 && (
-          <div className="next-button top-[25px] z-10 left-[20px] absolute" onClick={handleBack}>
-            <div className="circle">
-              <i className="back-icon"></i>
-            </div>
-          </div>
-        )}
-        {visibleStories.map((story) => (
-          <div key={story.id} className="story relative" onClick={() => setOpen(true)}>
-            <div className="story-circle">
-              <img src={story.imgSrc} alt={`story ${story.id}`} />
-            </div>
-          </div>
-        ))}
-        {/* {open && (
-          <StoryCarousel />
-        )} */}
-        {currentIndex + visibleCount < otherStories.length && (
-          <div className="next-button absolute right-[43px] top-[25px]" onClick={handleNext}>
-            <div className="circle">
-              <i className="next-icon"></i>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      {composerOpen && <StoryComposer onClose={() => setComposerOpen(false)} onCreated={loadStories} />}
+      {selectedUserId && <StoryViewer groups={groups} selectedUserId={selectedUserId} currentUserId={currentUser.id} onClose={() => setSelectedUserId(null)} onViewed={markViewed} />}
+    </>
   );
 };
 
