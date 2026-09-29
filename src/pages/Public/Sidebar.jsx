@@ -72,7 +72,12 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     }
 
     let active = true;
-    const socket = io(API_BASE_URL, { auth: { token }, withCredentials: true });
+    const socket = io(API_BASE_URL, {
+      path: '/api/socket-io/socket.io',
+      transports: ['websocket'],
+      auth: { token },
+      withCredentials: true,
+    });
     const handleNewNotification = (notification) => {
       setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
       if (!notification.isRead) setUnreadCount((count) => count + 1);

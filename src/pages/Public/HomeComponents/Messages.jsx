@@ -43,7 +43,12 @@ const MessagePage = ({ isMobile }) => {
     }
 
     let active = true;
-    const client = io(API_BASE_URL, { auth: { token }, withCredentials: true });
+    const client = io(API_BASE_URL, {
+      path: '/api/socket-io/socket.io',
+      transports: ['websocket'],
+      auth: { token },
+      withCredentials: true,
+    });
     setSocket(client);
 
     const updateConversation = (message, incoming) => {
