@@ -80,6 +80,10 @@ apiClient.interceptors.response.use(
 );
 
 export const apiRequest = async (path, options = {}) => {
+  if (import.meta.env.PROD && !API_BASE_URL) {
+    throw new Error("VITE_API_URL is not configured. Set it to the deployed backend URL and redeploy.");
+  }
+
   const { body, ...requestOptions } = options;
   return apiClient.request({
     ...requestOptions,
