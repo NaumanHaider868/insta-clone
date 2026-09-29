@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaArrowLeft, FaCheck, FaCheckDouble, FaPaperPlane } from "react-icons/fa";
 import { fetchChatConversation, sendChatMessage } from "../../../services/api";
 
@@ -211,7 +211,7 @@ const UserChat = ({
       <div ref={chatContainerRef} className="thin-scrollable flex flex-1 flex-col overflow-y-auto px-2 py-6">
         {messagesLoading && <p className="m-auto text-sm text-gray-500">Loading messages...</p>}
         {!messagesLoading && messages.length === 0 && <p className="m-auto text-sm text-gray-500">Start the conversation with {selectedUser.name}.</p>}
-        {messages.map((chatMessage, index) => {
+        {messages.map((chatMessage) => {
           const isMine = chatMessage.senderId === currentUser?.id;
           return (
             <div key={chatMessage.id} className={`mb-3 flex w-full ${isMine ? "justify-end" : "justify-start"}`}>

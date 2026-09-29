@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-// Import images with variable names matching file names
+import { useState } from "react";
 import explore1 from "../../../assets/images/users-imgs/explore1.jpg";
 import explore2 from "../../../assets/images/users-imgs/explore2.jpg";
 import explore3 from "../../../assets/images/users-imgs/explore3.jpg";
@@ -8,11 +7,12 @@ import explore6 from "../../../assets/images/users-imgs/explore6.jpg";
 import explore7 from "../../../assets/images/users-imgs/explore7.jpg";
 import explore8 from "../../../assets/images/users-imgs/explore8.jpg";
 import user13 from "../../../assets/images/users-imgs/user13.jpg";
+
+const tabs = ["For you", "Trending", "Top", "Recent", "Reels"];
+
 function ExplorePage() {
-  const [activeTab, setActiveTab] = useState('For you');
+  const [activeTab, setActiveTab] = useState("For you");
 
-
-  // Fake data for different tabs
   const data = {
     'For you': [
       { id: 1, src: explore1, likes: '15k', comments: '2k', isReel: false, isMultiple: false },
@@ -42,42 +42,32 @@ function ExplorePage() {
     ]
   };
 
-  const cta = () => {
-    return (
-      <>
-        <div className="flex items-center space-x-4 p-6 explore-cta">
-          <div className="flex items-center bg-white rounded-full px-3 py-[0.6rem] shadow-sm w-[350px]">
-            <i className="h-5 w-5 text-gray-400 dark:text-white search-icon"></i>
-            <input
-              type="text"
-              placeholder="Search"
-              className="ml-2 w-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
-            />
-          </div>
-
-          <div className="flex space-x-6 explore-tabs">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`text-sm ${activeTab === tab ? 'text-blue-600 underline font-bold dark:text-white' : 'text-gray-500 font-medium dark:text-white'}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-      </>
-    )
-  };
-
-  const tabs = ['For you', 'Trending', 'Top', 'Recent', 'Reels'];
-
   return (
     <div className="explore h-full">
       <div className="flex items-center pt-4 pb-8 h-full">
         <div className="bg-[#EFEFEF] dark:bg-[#ffffff1c] h-full shadow-lg rounded-3xl flex overflow-hidden w-full flex-col">
-          {cta()}
+          <div className="flex items-center space-x-4 p-6 explore-cta">
+            <div className="flex items-center bg-white rounded-full px-3 py-[0.6rem] shadow-sm w-[350px]">
+              <i className="h-5 w-5 text-gray-400 dark:text-white search-icon"></i>
+              <input
+                type="text"
+                placeholder="Search"
+                className="ml-2 w-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
+              />
+            </div>
+
+            <div className="flex space-x-6 explore-tabs">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`text-sm ${activeTab === tab ? 'text-blue-600 underline font-bold dark:text-white' : 'text-gray-500 font-medium dark:text-white'}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="h-full overflow-auto thin-scrollable p-6">
             <div className="grid grid-res gap-4 grid-cols-4">
               {data[activeTab].map((image) => (

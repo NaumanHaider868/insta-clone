@@ -1,10 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import { fetchChatConversations, getStoredSession, searchChatUsers } from "../../../services/api";
+import { API_BASE_URL, fetchChatConversations, getStoredSession, searchChatUsers } from "../../../services/api";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 const toInboxUser = (user, lastMessage = null, unreadCount = 0) => {
   const name = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.userName || "User";

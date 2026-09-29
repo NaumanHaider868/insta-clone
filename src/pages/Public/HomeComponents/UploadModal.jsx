@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FiImage, FiLoader, FiTrash2, FiUpload, FiX } from "react-icons/fi";
 import { createPost, createReel, updatePost, updateReel } from "../../../services/api";

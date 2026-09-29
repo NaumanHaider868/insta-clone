@@ -27,6 +27,7 @@ import {
   fetchHomeFeed,
   fetchPostComments,
   fetchReelComments,
+  deletePost,
   deleteReel,
   toggleLikeReel,
   toggleLikePost,
@@ -533,14 +534,7 @@ const Post = () => {
 
   const handleDeletePost = async (postId) => {
     try {
-      const response = await fetch(`http://localhost:8000/posts/${postId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("insta_token") || ""}`,
-        },
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || "Failed to delete post");
+      await deletePost(postId);
       setFeedItems((currentItems) => currentItems.filter((item) => item.id !== postId));
     } catch (deleteError) {
       setError(deleteError.message || "Unable to delete post.");
