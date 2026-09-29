@@ -1,4 +1,3 @@
-import React from "react";
 
 const InboxUserRow = ({ user, selected, onClick, showUnread = true }) => (
   <button

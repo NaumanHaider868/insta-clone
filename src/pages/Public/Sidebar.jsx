@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../assets/css/style.scss";
 import { Drawer } from "@mui/material";
@@ -21,6 +21,7 @@ import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 import {
+  API_BASE_URL,
   clearSession,
   fetchNotifications,
   followUser,
@@ -29,8 +30,6 @@ import {
   markNotificationRead,
 } from "../../services/api";
 import UploadModal from "./HomeComponents/UploadModal";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 const notificationMessage = (type) => {
   switch (type) {
