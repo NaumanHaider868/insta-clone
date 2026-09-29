@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+import axios from "axios";
+
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 const readStoredSession = () => {
   try {
@@ -42,34 +44,48 @@ const validateFile = (file, allowedTypes, label) => {
   }
 };
 
-export const apiRequest = async (path, options = {}) => {
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+apiClient.interceptors.request.use((config) => {
   const { token } = readStoredSession();
-  const isFormData = options.body instanceof FormData;
-  const headers = new Headers(options.headers || {});
+  if (token) config.headers.set("Authorization", `Bearer ${token}`);
 
-  if (!isFormData && !headers.has("Content-Type") && !(options.body instanceof URLSearchParams)) {
-    headers.set("Content-Type", "application/json");
+  if (config.data instanceof FormData) {
+    config.headers.delete("Content-Type");
+  } else if (config.data !== undefined && !(config.data instanceof URLSearchParams)) {
+    config.headers.set("Content-Type", "application/json");
   }
 
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  return config;
+});
 
-  const response = await fetch(`${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`, {
-    ...options,
-    credentials: "include",
-    headers,
+apiClient.interceptors.response.use(
+  (response) => response.data?.data ?? response.data,
+  (error) => {
+    const payload = error.response?.data;
+    const message = payload?.error || payload?.message || error.message || "Request failed";
+
+    if (error.response?.status === 401) {
+      clearSession();
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.assign("/login");
+      }
+    }
+
+    return Promise.reject(new Error(message));
+  }
+);
+
+export const apiRequest = async (path, options = {}) => {
+  const { body, ...requestOptions } = options;
+  return apiClient.request({
+    ...requestOptions,
+    url: path.startsWith("/") ? path : `/${path}`,
+    data: body,
   });
-
-  const text = await response.text();
-  const payload = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    const message = payload?.error || payload?.message || "Request failed";
-    throw new Error(message);
-  }
-
-  return payload?.data ?? payload;
 };
 
 export const loginUser = async ({ email, password }) => {
