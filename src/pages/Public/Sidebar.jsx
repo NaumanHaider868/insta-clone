@@ -22,6 +22,7 @@ import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg"
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 import {
   API_BASE_URL,
+  SOCKET_PATH,
   clearSession,
   fetchNotifications,
   followUser,
@@ -73,7 +74,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
 
     let active = true;
     const socket = io(API_BASE_URL, {
-      path: '/api/socket-io/socket.io',
+      path: SOCKET_PATH,
       transports: ['websocket'],
       auth: { token },
       withCredentials: true,

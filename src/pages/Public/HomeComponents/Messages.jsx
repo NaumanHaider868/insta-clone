@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import { API_BASE_URL, fetchChatConversations, getStoredSession, searchChatUsers } from "../../../services/api";
+import { API_BASE_URL, fetchChatConversations, getStoredSession, searchChatUsers, SOCKET_PATH } from "../../../services/api";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
 
@@ -44,7 +44,7 @@ const MessagePage = ({ isMobile }) => {
 
     let active = true;
     const client = io(API_BASE_URL, {
-      path: '/api/socket-io/socket.io',
+      path: SOCKET_PATH,
       transports: ['websocket'],
       auth: { token },
       withCredentials: true,
