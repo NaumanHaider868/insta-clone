@@ -67,31 +67,6 @@ const UserChat = ({
   }, [selectedUser?.id]);
 
   useEffect(() => {
-    if (!selectedUser?.id) return undefined;
-    const partnerId = selectedUser.id;
-
-    const timer = window.setInterval(() => {
-      fetchChatConversation(partnerId)
-        .then((conversation) => {
-          const incoming = Array.isArray(conversation) ? conversation : [];
-          setMessages((current) => {
-            const byId = new Map(incoming.map((item) => [item.id, item]));
-            const extras = incoming.filter((item) => item?.id && !current.some((existing) => existing.id === item.id));
-            const refreshed = current.map((item) => {
-              const next = byId.get(item.id);
-              if (!next || (next.isRead === item.isRead && next.isReceived === item.isReceived)) return item;
-              return { ...item, isRead: next.isRead, isReceived: next.isReceived };
-            });
-            return extras.length ? [...refreshed, ...extras] : refreshed;
-          });
-        })
-        .catch(() => {});
-    }, 3000);
-
-    return () => window.clearInterval(timer);
-  }, [selectedUser?.id]);
-
-  useEffect(() => {
     if (!socket || !selectedUser?.id) return undefined;
     const partnerId = selectedUser.id;
     const enterConversation = () => socket.emit("conversation:enter", { partnerId });
@@ -190,7 +165,24 @@ const UserChat = ({
     setChatError("");
     stopTyping();
     try {
-      const sentMessage = await sendChatMessage({ receiverId: selectedUser.id, content });
+      const sentMessage = await new Promise((resolve, reject) => {
+        const saveThroughApi = () => {
+          sendChatMessage({ receiverId: selectedUser.id, content }).then(resolve).catch(reject);
+        };
+
+        if (!socket?.connected) {
+          saveThroughApi();
+          return;
+        }
+
+        socket.timeout(10000).emit("message:send", { receiverId: selectedUser.id, content }, (timeoutError, response) => {
+          if (timeoutError || response?.status !== "success") {
+            saveThroughApi();
+            return;
+          }
+          resolve(response.data);
+        });
+      });
       setMessages((current) => current.some((item) => item.id === sentMessage.id) ? current : [...current, sentMessage]);
       setMessage("");
     } catch (sendError) {

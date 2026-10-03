@@ -4,13 +4,10 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, 
 export const SOCKET_PATH = "/api/socket-io";
 
 export const getSocketOptions = (token) => {
-  // The live function accepts Engine.IO polling. Its WebSocket upgrade crashes the function.
-  const usePolling = import.meta.env.PROD;
-
   return {
     path: SOCKET_PATH,
-    transports: usePolling ? ["polling"] : ["websocket"],
-    upgrade: !usePolling,
+    transports: ["websocket"],
+    upgrade: false,
     auth: { token },
     withCredentials: true,
   };
