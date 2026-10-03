@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
-import { API_BASE_URL, fetchChatConversations, getSocketOptions, getStoredSession, searchChatUsers } from "../../../services/api";
+import { useSocket } from "../../../context/SocketContext";
+import { fetchChatConversations, getStoredSession, searchChatUsers } from "../../../services/api";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
 
@@ -27,8 +27,7 @@ const MessagePage = ({ isMobile }) => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [socket, setSocket] = useState(null);
-  const [socketConnected, setSocketConnected] = useState(false);
+  const { socket, socketConnected } = useSocket();
   const selectedUserRef = useRef(null);
   const seenMessageIdsRef = useRef(new Set());
 
@@ -44,8 +43,27 @@ const MessagePage = ({ isMobile }) => {
     }
 
     let active = true;
-    const client = io(API_BASE_URL, getSocketOptions(token));
-    setSocket(client);
+
+    fetchChatConversations()
+      .then((conversations) => {
+        if (!active) return;
+        setUsers((conversations || []).map(({ user, lastMessage, unreadCount }) => toInboxUser(user, lastMessage, unreadCount)));
+        setError("");
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message || "Unable to load conversations.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentUserId, token]);
+
+  useEffect(() => {
+    if (!socket || !currentUserId) return undefined;
 
     const updateConversation = (message, incoming) => {
       if (!message?.id || seenMessageIdsRef.current.has(message.id)) return;
@@ -77,34 +95,16 @@ const MessagePage = ({ isMobile }) => {
         : current);
     };
 
-    client.on("connect", () => setSocketConnected(true));
-    client.on("disconnect", () => setSocketConnected(false));
-    client.on("message:receive", handleReceive);
-    client.on("message:sent", handleSent);
-    client.on("user:presence", handlePresence);
-
-    fetchChatConversations()
-      .then((conversations) => {
-        if (!active) return;
-        setUsers((conversations || []).map(({ user, lastMessage, unreadCount }) => toInboxUser(user, lastMessage, unreadCount)));
-        setError("");
-      })
-      .catch((loadError) => {
-        if (active) setError(loadError.message || "Unable to load conversations.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    socket.on("message:receive", handleReceive);
+    socket.on("message:sent", handleSent);
+    socket.on("user:presence", handlePresence);
 
     return () => {
-      active = false;
-      client.off("message:receive", handleReceive);
-      client.off("message:sent", handleSent);
-      client.off("user:presence", handlePresence);
-      client.disconnect();
-      setSocket(null);
+      socket.off("message:receive", handleReceive);
+      socket.off("message:sent", handleSent);
+      socket.off("user:presence", handlePresence);
     };
-  }, [currentUserId, token]);
+  }, [socket, currentUserId]);
 
   useEffect(() => {
     const query = searchQuery.trim();

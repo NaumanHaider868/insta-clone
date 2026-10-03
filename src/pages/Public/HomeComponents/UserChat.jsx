@@ -34,6 +34,8 @@ const UserChat = ({
   const chatContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const typingSentRef = useRef(false);
+  const socketRef = useRef(socket);
+  socketRef.current = socket;
 
   useEffect(() => {
     if (!selectedUser?.id) {
@@ -50,8 +52,8 @@ const UserChat = ({
       .then((conversation) => {
         if (!active) return;
         setMessages(conversation || []);
-        if (socketConnected && socket && document.visibilityState === "visible" && document.hasFocus()) {
-          socket.emit("message:read", { senderId: selectedUser.id });
+        if (socketRef.current?.connected && document.visibilityState === "visible" && document.hasFocus()) {
+          socketRef.current.emit("message:read", { senderId: selectedUser.id });
         }
       })
       .catch((loadError) => {
@@ -62,12 +64,14 @@ const UserChat = ({
       });
 
     return () => { active = false; };
-  }, [selectedUser?.id, socket, socketConnected]);
+  }, [selectedUser?.id]);
 
   useEffect(() => {
-    if (!socket || !selectedUser?.id || !socketConnected) return undefined;
+    if (!socket || !selectedUser?.id) return undefined;
     const partnerId = selectedUser.id;
-    socket.emit("conversation:enter", { partnerId });
+    const enterConversation = () => socket.emit("conversation:enter", { partnerId });
+    enterConversation();
+    socket.on("connect", enterConversation);
     const markConversationRead = () => {
       if (document.visibilityState === "visible" && document.hasFocus()) {
         socket.emit("message:read", { senderId: partnerId });
@@ -109,7 +113,8 @@ const UserChat = ({
     window.addEventListener("focus", markConversationRead);
 
     return () => {
-      socket.emit("conversation:leave");
+      socket.off("connect", enterConversation);
+      if (socket.connected) socket.emit("conversation:leave");
       socket.off("message:receive", handleMessage);
       socket.off("typing:start", handleTypingStart);
       socket.off("typing:stop", handleTypingStop);
@@ -119,7 +124,7 @@ const UserChat = ({
       window.removeEventListener("focus", markConversationRead);
       setTyping(false);
     };
-  }, [socket, socketConnected, selectedUser?.id, currentUser?.id]);
+  }, [socket, selectedUser?.id, currentUser?.id]);
 
   useEffect(() => {
     if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;

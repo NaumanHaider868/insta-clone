@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../assets/css/style.scss";
 import { Drawer } from "@mui/material";
 import { FiSettings, FiActivity, FiBookmark, FiMoon, FiAlertCircle, FiUser, FiLogOut, FiPlus } from 'react-icons/fi';
-import { io } from "socket.io-client";
+import { useSocket } from "../../context/SocketContext";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import SearchIconDefault from "../../assets/images/action-icons/search-default.svg";
@@ -21,8 +21,6 @@ import MsgIconDefault from "../../assets/images/action-icons/msg-default.svg";
 import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg";
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 import {
-  API_BASE_URL,
-  getSocketOptions,
   clearSession,
   fetchNotifications,
   followUser,
@@ -57,6 +55,7 @@ const notificationTime = (value) => {
 const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { socket } = useSocket();
   const [isOpen, setIsOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const { token } = getStoredSession();
@@ -74,14 +73,6 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     }
 
     let active = true;
-    const socket = io(API_BASE_URL, getSocketOptions(token));
-    const handleNewNotification = (notification) => {
-      if (!notification?.id || seenNotificationIdsRef.current.has(notification.id)) return;
-      seenNotificationIdsRef.current.add(notification.id);
-      setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
-      if (!notification.isRead) setUnreadCount((count) => count + 1);
-    };
-    socket.on("notification:new", handleNewNotification);
 
     fetchNotifications(1, 50)
       .then((response) => {
@@ -99,10 +90,20 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
 
     return () => {
       active = false;
-      socket.off("notification:new", handleNewNotification);
-      socket.disconnect();
     };
   }, [token]);
+
+  useEffect(() => {
+    if (!socket) return undefined;
+    const handleNewNotification = (notification) => {
+      if (!notification?.id || seenNotificationIdsRef.current.has(notification.id)) return;
+      seenNotificationIdsRef.current.add(notification.id);
+      setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
+      if (!notification.isRead) setUnreadCount((count) => count + 1);
+    };
+    socket.on("notification:new", handleNewNotification);
+    return () => socket.off("notification:new", handleNewNotification);
+  }, [socket]);
   const toggleDrawer = (open) => (event) => {
     if (
       event.type === 'keydown' &&
