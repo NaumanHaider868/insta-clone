@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import { API_BASE_URL, fetchChatConversations, getStoredSession, searchChatUsers, SOCKET_PATH } from "../../../services/api";
+import { API_BASE_URL, fetchChatConversations, getSocketOptions, getStoredSession, searchChatUsers } from "../../../services/api";
 import InboxSide from "./InboxSide";
 import UserChat from "./UserChat";
 
@@ -30,6 +30,7 @@ const MessagePage = ({ isMobile }) => {
   const [socket, setSocket] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const selectedUserRef = useRef(null);
+  const seenMessageIdsRef = useRef(new Set());
 
   useEffect(() => {
     selectedUserRef.current = selectedUser;
@@ -43,15 +44,12 @@ const MessagePage = ({ isMobile }) => {
     }
 
     let active = true;
-    const client = io(API_BASE_URL, {
-      path: SOCKET_PATH,
-      transports: ['websocket'],
-      auth: { token },
-      withCredentials: true,
-    });
+    const client = io(API_BASE_URL, getSocketOptions(token));
     setSocket(client);
 
     const updateConversation = (message, incoming) => {
+      if (!message?.id || seenMessageIdsRef.current.has(message.id)) return;
+      seenMessageIdsRef.current.add(message.id);
       const partnerId = message.senderId === currentUserId ? message.receiverId : message.senderId;
       const partner = message.senderId === currentUserId ? message.receiver : message.sender;
       const isOpen = selectedUserRef.current?.id === partnerId;

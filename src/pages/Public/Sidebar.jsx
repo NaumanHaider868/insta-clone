@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../assets/css/style.scss";
 import { Drawer } from "@mui/material";
@@ -22,7 +22,7 @@ import ReelsIconDefault from "../../assets/images/action-icons/reel-default.svg"
 import ReelsIcon from "../../assets/images/action-icons/reels.svg";
 import {
   API_BASE_URL,
-  SOCKET_PATH,
+  getSocketOptions,
   clearSession,
   fetchNotifications,
   followUser,
@@ -65,6 +65,7 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [notificationsError, setNotificationsError] = useState("");
   const [followingBack, setFollowingBack] = useState([]);
+  const seenNotificationIdsRef = useRef(new Set());
 
   useEffect(() => {
     if (!token) {
@@ -73,13 +74,10 @@ const Sidebar = ({ darkMode, setDarkMode, isMobile }) => {
     }
 
     let active = true;
-    const socket = io(API_BASE_URL, {
-      path: SOCKET_PATH,
-      transports: ['websocket'],
-      auth: { token },
-      withCredentials: true,
-    });
+    const socket = io(API_BASE_URL, getSocketOptions(token));
     const handleNewNotification = (notification) => {
+      if (!notification?.id || seenNotificationIdsRef.current.has(notification.id)) return;
+      seenNotificationIdsRef.current.add(notification.id);
       setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
       if (!notification.isRead) setUnreadCount((count) => count + 1);
     };
